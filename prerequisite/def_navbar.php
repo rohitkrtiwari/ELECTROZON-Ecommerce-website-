@@ -10,12 +10,12 @@ require("prerequisite/responsive_header.php");
       <ul>
         <li>
           <i class="fa fa-phone"></i>
-          <a href="<?php echo SITE_PATH ?>contact_us" class="top_nav_contact">+91-8076643316</a>
+          <a href="#" class="top_nav_contact"><?php echo CONTACT_NUMBER ?></a>
         </li>
         <li>|</li>
         <li>
           <i class="fa fa-envelope-o"></i>
-          <a href="<?php echo SITE_PATH ?>contact_us" class="top_nav_contact">care@electrozon.com</a>
+          <a href="#" class="top_nav_contact"><?php echo EMAIL ?></a>
         </li>
       </ul>
     </div>
@@ -44,8 +44,8 @@ require("prerequisite/responsive_header.php");
 
 <section class="header">
   <div class="nav-row">
-    <div class="nav-left"><a href="<?php echo SITE_PATH ?>">
-        <img src="<?php echo SITE_PATH; ?>assets/images/logo.png"></a>
+    <div class="nav-left">
+      <center><a style="text-decoration: none" href="<?php echo SITE_PATH ?>"><img src="<?php echo SITE_PATH ?>assets/images/logo.png" style="height: 56px;"></a></center>
     </div>
     <div class="nav-middle">
       <div class="search-bar">
@@ -59,20 +59,19 @@ require("prerequisite/responsive_header.php");
     </div>
     <div class="nav-right">
       <div class="wishlist">
-        <a href="#" class="link">
-          <i class="fa fa-heart-o "></i>
-          <b class="cart_count" id="wishlist_count">0</b>Wishlist
+          <a class="link btn rounded-0 fw-bold p-0 pt-2 me-2" style="font-size: 17px;" href="<?php echo SITE_PATH ?>login"><i class="fa fa-user-circle-o text-dark" ></i> <span style="vertical-align: text-bottom;" >Login</span></a>
         </a>
       </div>
       <?php 
       $cart = getCartPID($conn,$_SESSION['user_id']);
       ?>
-      <div class="cart" >
+      <div class="cart fs-5 py-1">
         <a href="<?php echo SITE_PATH ?>cart"  class="link">
           <i class="fa fa-shopping-cart"></i>
-          <b class="cart_count" id="cart_count"><?php echo count($cart); ?></b>Cart
+          <b class="cart_count" id="cart_count"><?php echo count($cart); ?></b><b>Cart</b>
         </a>
       </div>
     </div>
   </div>
 </section>
+

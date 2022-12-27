@@ -36,7 +36,7 @@ if(isset($_GET['msg'])!=''){
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 	<script src="assets/js/custom.js"></script>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<title>Electrozon <?php if($msg == 'email_verification') echo "Email Verification"; ?></title>
+	<title>Information Electrozon</title>
 </head>
 <body>
 

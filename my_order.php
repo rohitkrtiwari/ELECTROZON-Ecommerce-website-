@@ -6,7 +6,7 @@ require('functions.inc.php');
 $user_id = get_user($conn)[0]; $loggedin = get_user($conn)[1];
 
 if(!$loggedin){
-  header('location:'.SITE_PATH.'404');
+  header('location:'.SITE_PATH.'login');
 }
 
 $ordersArr = getOrder($conn, $user_id);
@@ -32,9 +32,9 @@ $ordersArr = getOrder($conn, $user_id);
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 	<script src="assets/js/custom.js"></script>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<title>Electrozon - My Order</title>
+	<title>Electrozon - Your Order</title>
 </head>
-<body>
+<body class="">
 
 
 <!-- wpf loader Two -->
@@ -59,66 +59,118 @@ require('prerequisite/main-menu.php');
 <?php if(count($ordersArr)!=0){  ?>
 
 
-<section class="grid-view my_order_resp">
-  <div class="container-fluid p-4">
-    <div class="row">
-      <div class="content">
-        <h1>Manage Orders</h1>
-        <div id="alert-msg" style="background-color: #3d1a54;"></div>
+<div id="alert-msg" style="background-color: #3d1a54;"></div>
+<section class="bg-white">
+  <div class="container-fluid mt-2">
+    <div class="row my-3">
 
+      <div class="col-auto mt-2">
+        <nav id="sidebarMenu" class=" d-md-block bg-light sidebar collapse">
+        <h3 class="mx-3 fw-bold">My Account</h3>
+        <h5 class="mx-3 mt-3">Manage Account</h5>
+          <div class="position-sticky pt-3">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="<?php echo SITE_PATH ?>my_account">
+                  <span data-feather="shopping-cart"></span>
+                  Manage Profile
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="<?php echo SITE_PATH ?>my_order">
+                  <span data-feather="file"></span>
+                  Orders History
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="<?php echo SITE_PATH ?>address_manager">
+                  <span data-feather="users"></span>
+                  Shipping Addresses
+                </a>
+              </li>
+            </ul>
 
-        <div class="table-responsive " >
-          <table class="table table-hover caption-top table_scroll_x" style="margin:25px 0;">
-            <caption>Click on the blue button to view orders</caption>
-            <thead>
-              <tr>
-                <th scope="col"  >Order ID</th>
-                <th scope="col"  style="width: 300px;">Address</th>
-                <th scope="col" >Order Date</th>
-                <th scope="col" >Payment Type</th>
-                <th scope="col" >Payment Status</th>
-                <th scope="col" >Order Status</th>
-                <th scope="col"  role="button" title="To track packages while on the go, send UPS an SMS to get the status of your shipment. Simply text your tracking keyword followed by your tracking number to your country SMS number and we'll reply with your shipment status details.">Tracking ID</th>
-              </tr>
-            </thead>
-            <tbody>
+          </div>
+        </nav>
+      </div>
 
-              <?php
-                foreach ($ordersArr as $order) {
-                  $address=getAddress($conn, $user_id,1, $order['address_id']);
-              ?>
-                <tr style="vertical-align: baseline;">
-               	<td><center><button class="btn btn-dark" onclick="viewOrderDetail(<?php echo $order['id']; ?>)" style="line-height: 1.1;width: 100%;background: #215c90;"><?php echo $order['id']; ?></button></center></td>
-                  <td role="button"><?php print_r($address[0]['address']."<br>".$address[0]['post_code']); ?></td>
-                  <td role="button"><?php echo $order['added_on']; ?></td>
-                  <td role="button"><?php echo $order['PAYMENTMODE']; ?></td>
-                  <td role="button"><?php echo $order['payment_status']; ?></td>
-                  <td role="button"><?php echo $order['order_status_str']; ?></td>
-                  <td role="button" title="To track packages while on the go, send UPS an SMS to get the status of your shipment. Simply text your tracking keyword followed by your tracking number to your country SMS number and we'll reply with your shipment status details.">
-                    <?php 
-                      if($order['tracking_id']=='' or $order['tracking_id']=='None'){
-                        echo "We'll Soon provide you an tracking ID ";
-                      } else {
-                        echo $order['tracking_id'];
-                      }
-                    ?>    
-                  </td>
-                </tr>
-              <?php  } ?>
+      <div class="col pt-1">
+      <p > <a class="fs-14 text-decoration-none fw-bold" href="<?php echo SITE_PATH ?>">Home > </a> <a class="fs-14 text-decoration-none fw-bold" href="<?php echo SITE_PATH ?>my_account">My Account > </a> <a class="fs-14 text-decoration-none text-danger fw-bold" href="#"> Order History </a></p>
+        <h1>Your Orders</h1>
 
-            </tbody>
-          </table>
+        <div class="container mt-4">
+          <b><?php echo count($ordersArr); ?> Orders Placed </b>
+          <?php foreach ($ordersArr as $order) { $address=getAddress($conn, $user_id,1, $order['address_id']); ?>
+              <div class="row my-3 border rounded-top">
+
+                <!-- Top bar Every Order -->
+                <div class="top p-3" style="border: #e0e9e0; background: #f5f5f5;">
+                  <div class="row">
+                    <div class="col-auto"> 
+                      <p class="fs-14 py-0 my-0">Order Placed </p> 
+                      <?php 
+                      $timestamp = strtotime($order['added_on']);
+                      $date = date('d', $timestamp);
+                      $MonthName = date('M', $timestamp);
+                      $Year = date('Y', $timestamp);
+                      ?>
+                      <p class="fs-14 py-0 my-0"><?php echo $MonthName." ".$date.", ".$Year; ?></p> 
+                    </div>
+
+                    <div class="col-auto"> 
+                      <p class="fs-14 py-0 my-0">Total </p> 
+                      <p class="fs-14 py-0 my-0"><i class="fa fa-inr"></i> <?php echo (int) $order['total_price']; ?></p> 
+                    </div>
+
+                    
+                    <div class="col-auto ms-auto me-0 float-end"> 
+                      <p class="fs-14 py-0 my-0">Order ID : <?php echo $order['id'] ?> </p> 
+                      <a class="fs-14 py-0 my-0 text-decoration-none fw-bold" href="#">Order Details </a> 
+                    </div>
+                  </div>
+                </div>              
+
+                <div class="row px-4">
+                  <p class="m-0 p-0 mt-1"><span class="text-danger">Tracknig ID: </span><?php echo $order['tracking_id'] ?></p>
+                  <div class="row my-3">
+                    <p class="fw-bold col fs-4"><?php echo $order['order_status_str']; ?></p>                    
+                    <p class="fw-bold col fs-6 pull-right"><?php if($order['payment_status'] == 'pending') echo "Payment ".$order['payment_status'];?></p>
+                  </div>  
+
+                  <?php $ProductsArr = getOrderDetails($conn, $user_id, $order['id']); ?>
+                  <?php foreach ($ProductsArr as $product) { ?>
+                  <div class="row mb-2">
+                      <div class="col-auto">
+                        <a href="<?php echo SITE_PATH ?>product/<?php echo $product['product_id']; ?>"><img src="<?php echo PRODUCT_IMAGE_SITE_PATH.$product['image'];?>" class="resp_img_full" ></a>
+                      </div>
+                      <div class="col-auto">
+                        <a class="fs-14 py-0 my-0 text-decoration-none fw-bold " href="<?php echo SITE_PATH ?>product/<?php echo $product['product_id']; ?>"><?php echo $product['name'];?></a>
+                        <p class="fs-14 py-0 my-0"><i class="fa fa-inr"></i> <?php echo $product['price'];?>   Qty: <?php echo $product['qty'];?>  <button class="ms-3 btn btn-success btn-sm" style=" font-size:12px;" onclick="addCart('<?php echo $user_id; ?>',<?php echo $product['product_id'] ?>,1,'<?php echo SITE_PATH ?>cart')"">Buy It Again</button></p>
+                        
+                      </div>
+                      <div class="col-auto">
+                        <!-- <button class="btn btn-secondary">Track Your package</button> -->
+                      </div>
+
+                  </div>
+                  <?php } ?>
+
+                </div>
+
+              </div>              
+          <?php } ?>
+        </div>
+        <div class="cart-buttons">
+          <div class="">
+            <a href="<?php echo SITE_PATH ?>" class="btn btn-secondary">Continue Shopping</a>
+          </div>
         </div>
       </div>
+
     </div>
   </div>
 
 
-  <div class="cart-buttons">
-    <div class="pull-left">
-      <a href="<?php echo SITE_PATH ?>" class="btn btn-secondary">Continue Shopping</a>
-    </div>
-  </div>
 </section>
 
 

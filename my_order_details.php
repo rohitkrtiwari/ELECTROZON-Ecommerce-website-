@@ -23,16 +23,14 @@ if(isset($_GET['id'])!=''){
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="HandheldFriendly" content="true">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="<?php echo SITE_PATH ?>assets/css/theme.css" rel="stylesheet">
   <link href="<?php echo SITE_PATH ?>assets/css/style.css" rel="stylesheet">
-  <link href="<?php echo SITE_PATH ?>assets/css/preloader.css" rel="stylesheet">
-  <link href="<?php echo SITE_PATH ?>assets/css/header.css" rel="stylesheet">
+	<link href="<?php echo SITE_PATH ?>assets/css/preloader.css" rel="stylesheet">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 	<script src="<?php echo SITE_PATH ?>assets/js/custom.js"></script>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<title>Electrozon - My Order Details</title>
+	<title>Order Details - Electrozon</title>
 </head>
 <body>
 

@@ -1,6 +1,10 @@
 // function to display alert messages
-function alertMsg(msg, link=''){
+function alertMsg(msg, link='', time=0){
   $("#alert-msg").html(msg);
+    if(time==0)
+      time = 2000
+    else
+      time = time
     $("#alert-msg").fadeIn('fast');
     $(window).scrollTop(0);
     setTimeout(function(){
@@ -8,7 +12,7 @@ function alertMsg(msg, link=''){
       if(link!=''){
         window.location.href=link;
       }
-    },500);
+    },time);
 }
 
 function show_preloader(){
@@ -59,7 +63,7 @@ $(document).ready(function() {
       success: function (data)
           {
             hide_preloader();
-            alertMsg("Category Updated", "https://electrozon.in/ab_admin-lg/categories");
+            alertMsg("Category Updated", "https://electrozon.in/ab_admin-lg/categories", 1);
 
           },
       error: function (data)
@@ -84,7 +88,7 @@ $(document).ready(function() {
       success: function (data)
           {
             hide_preloader();
-            alertMsg("Category Updated", "https://electrozon.in/ab_admin-lg/sub_categories");
+            alertMsg("Sub Category Updated", "https://electrozon.in/ab_admin-lg/sub_categories", 1);
 
           },
       error: function (data)
@@ -108,7 +112,7 @@ $(document).ready(function() {
       success: function (data)
           {
             hide_preloader();
-            alertMsg("Category Updated", "https://electrozon.in/ab_admin-lg/sub_categories");
+            alertMsg("Sub Category ID Updated", "https://electrozon.in/ab_admin-lg/sub_categories", 1);
 
           },
       error: function (data)
@@ -121,30 +125,26 @@ $(document).ready(function() {
     
   })
 
-  $('#tracking_id_btn').click(function() {
-    $.when(show_preloader()).then(function() {
-      trackingId = $("#tracking_id").val();
-      if(trackingId == '') trackingId = 'None';
-      order_id = $("#tracking_id").attr('name');
-      $.ajax({
-          type: "POST",
-          url: "https://electrozon.in/ab_admin-lg/orders.php",
-          data: {'type':'update_tracking_id', 'tracking_id':trackingId, 'order_id':order_id},
+  $('.tracking_id_btn').change(function() {
+    trackingId = $(this).val();
+    if(trackingId == '') trackingId = 'None';
+    order_id = $(this).attr('name');
+    $.ajax({
+        type: "POST",
+        url: "https://electrozon.in/ab_admin-lg/orders.php",
+        data: {'type':'update_tracking_id', 'tracking_id':trackingId, 'order_id':order_id},
 
-          success: function (data)
-              {
-                hide_preloader();
-                alertMsg("Tracking ID updated", "https://electrozon.in/ab_admin-lg/orders");
+        success: function (data)
+            {
+              alertMsg("Tracking ID updated", "https://electrozon.in/ab_admin-lg/orders", 1);
 
-              },
-          error: function (data)
-              {
-                hide_preloader();
-                alert('Error');
-                return false;
-              }
-        });
-    });
+            },
+        error: function (data)
+            {
+              alert('Error');
+              return false;
+            }
+      });
   });
 });
 

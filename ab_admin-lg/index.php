@@ -1,6 +1,6 @@
 <?php 
 $request=$_SERVER['REQUEST_URI'];
-$router = str_replace('/electrozon/ab_admin-lg','',$request);
+$router = str_replace('/ab_admin-lg','',$request);
 
 if($router=='/' or $router=='/index' or $router=='/home' or $router=='/index.php')
 {
@@ -78,9 +78,9 @@ elseif($router == '/email_verify')
 	include('email_verify.php');
 }
 
-elseif($router == '/404')
-{
-	include('404.php');
+else{
+	include('not-found.php');
 }
 
 ?>
+

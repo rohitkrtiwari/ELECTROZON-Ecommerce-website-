@@ -8,9 +8,22 @@ $product_resp_count=2;
 $user_id = get_user($conn)[0]; $loggedin = get_user($conn)[1];
 
 if(isset($_GET['submit']) && $_GET['search']!=''){
-  $str=get_safe_value($conn,$_GET['search']);
+  $str=strtolower(get_safe_value($conn,$_GET['search']));
   if($str != ''){
-    $category_product=get_product($conn,'','','',$str);
+    $tags_sql = "SELECT pid from tags where tag like '%$str%'";
+    $tags_res = mysqli_query($conn, $tags_sql);
+    if(mysqli_num_rows($tags_res)>0){
+      while ($tags_row=mysqli_fetch_assoc($tags_res)){
+        $pid_data[]=$tags_row['pid'];
+      }
+      $category_product=get_product($conn,'','','',$str, '', $pid_data);
+    }else
+      $category_product=get_product($conn,'','','',$str, '');
+    if(count($category_product)>0){
+
+    }else{
+      $category_product='';
+    }
   }else{
     $category_product='';
   }
@@ -91,14 +104,14 @@ require('prerequisite/main-menu.php');
     <div class="row">
       <?php foreach ($category_product as $product) { ?>
       <div class="col-sm-3 product-img py-3 my-1 h-75 cat_prdct_view">
-        <div class="prdct-box border rounded-3 pt-3 position-relative" style="height: 345px;">
+        <div class="prdct-box border rounded-3 pt-3 position-relative" style="height: 400px;">
           <a href="<?php echo SITE_PATH ?>product/<?php echo $product['id'] ?>" class="product-link">
             <div class="product-img">
               <img src=" <?php echo PRODUCT_IMAGE_SITE_PATH.$product['image'];?> " style="height: 100%; width: 100%;object-fit: contain;"alt="Avatar">
             </div>
             <div class="container mt-4 text-center">
               <span class="product-name"><?php echo $product['short_name'] ?></span><br>
-              <span class="product-price"><i class="fa fa-inr"></i><?php echo $product['price'] ?> <span><i class="fa fa-inr"></i><?php echo $product['mrp'] ?></span> </span>
+              <span class="product-price"><i class="fa fa-inr"></i><?php echo $product['price'] ?>  </span>
             </div>
           </a>
           <div class="shopping-controls mt-3 position-absolute bottom-0"><button class="product-button py-2" onclick="addCart('<?php echo $user_id; ?>',<?php echo $product['id'] ?>)"><i class="fa fa-shopping-cart"></i> Add to Cart</button>

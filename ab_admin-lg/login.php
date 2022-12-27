@@ -4,6 +4,16 @@ require('functions.inc.php');
 session_start();
 $msg='';
 
+if(isset($_SESSION['login_attempt_count'])){}
+else{
+    $_SESSION['login_attempt_count'] = 0;
+}
+// Restrict entry of blocked users
+if(user_is_blocked($conn)){
+    header('location:'.SITE_PATH.'errors/forbid ');
+}
+
+
 // Restrict logged user to visit this page
 if(isset($_SESSION['ADMIN_LOGIN'])){
     if(isset($_SESSION['email_verify'])==true){
@@ -14,46 +24,76 @@ if(isset($_SESSION['ADMIN_LOGIN'])){
 }
 
 
+
+
+
 // Verifiy users logging
 if(isset($_POST['submit']))
-{
-    
-    $username=get_safe_value($conn,$_POST['username']);
-    $password=md5(get_safe_value($conn,$_POST['password']));
-    $sql="SELECT * from admin_users where username = '$username' and password = '$password'";
-    $res=mysqli_query($conn, $sql);
-    $count=mysqli_num_rows($res);
-    
-    // If user exists
-    if($count>0)
+{   
+    if(isset($_POST['csrf_token']))
     {
-        // Details of admin trying to login
-        $remote_addr = $_SERVER['REMOTE_ADDR'];
-        $http_user_agent = $_SERVER['HTTP_USER_AGENT'];
-        $crt_time = crt_time();
-
-        // Sent email to the founders about tis login
-        notify_admin($username, $remote_addr, $http_user_agent, $crt_time);
-        // Add this login details in database
-        add_login_db($conn, $username, $remote_addr, $http_user_agent, $crt_time);
-
-        // Further preced for otp Verification
-        $otp = random_strings(6);
-        if(login_otp($username, $otp))
+        $csrf_token = get_safe_value($conn, $_POST['csrf_token']);
+        if($_SESSION['csrf_token']['admin_login_token']  == $csrf_token)
         {
-            $_SESSION['otp'] = $otp;
-            $_SESSION['ADMIN_LOGIN'] = true;
-            $_SESSION['username'] = $username;
-            header('location:'.SITE_ADMIN_PATH.'email_verify');
-            die();
+            if($_SESSION['login_attempt_count'] >= 4)
+            {
+                password_reset($conn, $_SESSION['tmp_username']);    
+                $msg = "Password have been reset and emailed to the founders";
+                session_destroy();
+                block_user($conn);
+                header('location:'.SITE_PATH.'errors/forbid ');
+            }
+            else
+            {
+
+                $_SESSION['login_attempt_count'] += 1;    
+
+
+                $username=get_safe_value($conn,$_POST['username']);
+                $_SESSION['tmp_username'] = $username;
+                $password=md5(get_safe_value($conn,$_POST['password']));
+                $sql="SELECT * from admin_users where username = '$username' and password = '$password'";
+                $res=mysqli_query($conn, $sql);
+                $count=mysqli_num_rows($res);
+                
+                // If user exists
+                if($count>0)
+                {
+                    // Details of admin trying to login
+                    $remote_addr = $_SERVER['REMOTE_ADDR'];
+                    $http_user_agent = $_SERVER['HTTP_USER_AGENT'];
+                    $crt_time = crt_time();
+
+                    // Sent email to the founders about tis login
+                    notify_admin($username, $remote_addr, $http_user_agent, $crt_time);
+                    // Add this login details in database
+                    add_login_db($conn, $username, $remote_addr, $http_user_agent, $crt_time);
+
+                    // Further preced for otp Verification
+                    $otp = random_strings(6);
+                    if(login_otp($username, $otp))
+                    {
+                        $_SESSION['otp'] = $otp;
+                        $_SESSION['ADMIN_LOGIN'] = true;
+                        $_SESSION['username'] = $username;
+                        header('location:'.SITE_ADMIN_PATH.'email_verify');
+                        die();
+                    }
+
+                }
+
+                else
+                {
+                    $msg="Please enter correct login details";
+                }
+            }
+        
         }
-
+        else
+            $msg = "Bad Request";
     }
-
     else
-    {
-        $msg="Please enter correct login details";
-    }
+        $msg = "Bad request";
 }
 ?>
 
@@ -85,10 +125,12 @@ if(isset($_POST['submit']))
             <form method="POST" autocomplete='off'>
                 <h1>Welcome Back</h1>
                 <h4>ELECTROZON Admin Login</h4>
+                <input type="text" name="csrf_token" hidden value="<?php echo csrf_token('admin_login_token'); ?>"> 
                 <lable class="lable">Username</lable>
                 <input type="email" placeholder="johndoe@gmail.com" name='username' required>
                 <lable class="lable">Password</lable>
                 <input type="password" name='password' placeholder="Please enter your password" style="margin-bottom: 20px;" required>
+                <p class="text-danger"><?php if($_SESSION['login_attempt_count']) echo (5-$_SESSION['login_attempt_count'])." Attempt Left"; ?></p>
                 <button type="submit" class="btn-submit" id="submit" name="submit">Login</button>
             </form>    
         </div>

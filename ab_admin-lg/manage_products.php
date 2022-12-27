@@ -3,15 +3,13 @@ ob_start();
 error_reporting(E_ALL);
 require('home.php');
 $msg=array();
+$tags=array();
 $name='';
 $short_name='';
 $category_id='';
 $price='';
-$qty='';
 $image='';
 $description='';
-$meta_title='';
-$meta_desc='';
 $meta_keyword='';
 $best_seller='';
 
@@ -28,15 +26,16 @@ if(isset($_GET['id']) && $_GET['id']!=''){
 		$short_name=$row['short_name'];
 		$category_id=$row['category_id'];
 		$price=$row['price'];
-		$qty=$row['qty'];
 		$description=$row['description'];
-		$meta_title=$row['meta_title'];
-		$meta_desc=$row['meta_desc'];
 		$meta_keyword=$row['meta_keyword'];
 		$best_seller=$row['best_seller'];
 	}else{
 		header('location:'.SITE_ADMIN_PATH.'product');
 		die();
+	}
+	$tags_res = mysqli_query($conn, "SELECT tag from tags WHERE pid = '$id'");
+	while ($tags_row=mysqli_fetch_assoc($tags_res)){
+		$tags[]=$tags_row['tag'];
 	}
 }
 
@@ -59,6 +58,13 @@ if(isset($_POST['submit'])){
 		$category_id=get_safe_value($conn,$_POST['category_id']);
 	}
 
+	if(isset($_POST['tags'])){
+	    $new_tags = array();
+	    foreach ($_POST['tags'] as $key ) {
+	      array_push($new_tags, $key);
+	    }
+	  }
+
 	if(isset($_POST['price'])){
 		$price=get_safe_value($conn,$_POST['price']);
 		if ($price == ''){
@@ -66,31 +72,10 @@ if(isset($_POST['submit'])){
 		}
 	}
 
-	if(isset($_POST['qty'])){
-		$qty=get_safe_value($conn,$_POST['qty']);
-		if ($qty == ''){
-			array_push($msg,"Product Quantity missing");
-		}
-	}
-
 	if(isset($_POST['description'])){
 		$description=get_safe_value($conn,$_POST['description']);
 		if ($description == ''){
 			array_push($msg,"Product Description missing");
-		}
-	}
-
-	if(isset($_POST['meta_title'])){
-		$meta_title=get_safe_value($conn,$_POST['meta_title']);
-		if ($meta_title == ''){
-			array_push($msg,"Product meta_title missing");
-		}
-	}
-
-	if(isset($_POST['meta_desc'])){
-		$meta_desc=get_safe_value($conn,$_POST['meta_desc']);
-		if ($meta_desc == ''){
-			array_push($msg,"Product meta_desc missing");
 		}
 	}
 
@@ -143,21 +128,28 @@ if(isset($_POST['submit'])){
 		if(isset($_GET['id']) && $_GET['id']!=''){
 			if($_FILES['image']['name']!=''){
 				$image = rand(111111111,999999999).'_'.$_FILES['image']['name'];
-				move_uploaded_file($_FILES['image']['tmp_name'],PRODUCT_IMAGE_SERVER_PATH.$image);
-				$update_sql="update product set category_id='$category_id', name='$name', short_name='$short_name', price='$price', qty='$qty', description='$description', meta_title='$meta_title', meta_desc='$meta_desc', meta_keyword='$meta_keyword', best_seller='$best_seller', image='$image' where id='$id'";
+				copy($_FILES['image']['tmp_name'],PRODUCT_IMAGE_SERVER_PATH.$image);
+				$update_sql="update product set category_id='$category_id', name='$name', short_name='$short_name', price='$price',  description='$description', meta_keyword='$meta_keyword', best_seller='$best_seller', image='$image' where id='$id'";
 			}else{
-				$update_sql="update product set category_id='$category_id', name='$name', short_name='$short_name', price='$price', qty='$qty', description='$description', meta_title='$meta_title', meta_desc='$meta_desc', meta_keyword='$meta_keyword', best_seller='$best_seller' where id='$id'";
+				$update_sql="update product set category_id='$category_id', name='$name', short_name='$short_name', price='$price', description='$description', meta_keyword='$meta_keyword', best_seller='$best_seller' where id='$id'";
 			}
 			
-			if(mysqli_query($conn,$update_sql))
+			if(mysqli_query($conn,$update_sql)){
+				try{
+			        add_tags($conn, $id, $new_tags);
+			      }
+			      catch(Exception $e){
+			        echo $e;
+			      }
 				header('location:'.SITE_ADMIN_PATH.'products ');
+			}
 			else
 				array_push($msg, "query execution failuer");
 
 		}else{
 			$image = rand(111111111,999999999).'_'.$_FILES['image']['name'];
-			move_uploaded_file($_FILES['image']['tmp_name'],PRODUCT_IMAGE_SERVER_PATH.$image);
-			$sql = "insert into product(name,short_name ,category_id,price,qty,description,meta_title,meta_desc,meta_keyword,status,image, best_seller) values('$name', '$short_name', '$category_id', '$price', '$qty', '$description', '$meta_title', '$meta_desc', '$meta_keyword', '1', '$image', '$best_seller')";
+			copy($_FILES['image']['tmp_name'],PRODUCT_IMAGE_SERVER_PATH.$image);
+			$sql = "insert into product(name, short_name, category_id,price,description, meta_keyword,status,image, best_seller) values('$name', '$short_name', '$category_id', '$price', '$description', '$meta_keyword', '1', '$image', '$best_seller')";
 			if(mysqli_query($conn,$sql)){
 				echo "query executed successfully";
 				header('location:'.SITE_ADMIN_PATH.'products');
@@ -169,10 +161,35 @@ if(isset($_POST['submit'])){
 	}
 }
 
+// Function to add tags
+function add_tags($conn, $product_id, $tags){
+  try{
+  	mysqli_query($conn, "DELETE from tags where pid = '$product_id'");
+  }
+  catch(Exception $e){
+    echo $e;
+  }
+  $tags_sql = "INSERT INTO tags(pid, tag) VALUES";
+  $i=0;
+  $len = count($tags);
+  foreach ($tags as $index => $key ) {
+    if($i == $len-1){
+      $tags_sql.="('$product_id','$key')";
+    }else
+      $tags_sql.="('$product_id','$key'),";
+    $i++;
+  }
+  if(mysqli_query($conn, $tags_sql))
+    return true;
+  else
+    return false;
+}
+
 ob_end_flush();
 ?>
 
 <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 my-4">
+<link rel="stylesheet" type="text/css" href="<?php echo SITE_ADMIN_PATH ?>assets/css/add_product.css">
 
 <form class="ad-form form" method="POST" enctype="multipart/form-data">
 <h2>Add new Product</h2>
@@ -216,10 +233,12 @@ ob_end_flush();
 	  <!-- <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div> -->
 	</div>
 
+
 	<div class="input-group mb-3">
 	  <label class="input-group-text">Product Short Name</label>
 	  <input type="text" required  name="short_name" value="<?php echo $short_name; ?>" class="form-control form-control-sm" placeholder="Enter Product Short Name">
 	</div>
+
 
 	<div class="input-group mb-3">
 	    <label class="input-group-text">Best Seller</label>
@@ -235,11 +254,6 @@ ob_end_flush();
 	</div>
 
 	<div class="input-group mb-3">
-	  <label class="input-group-text">Quantity</label>
-	  <input type="number" required  name="qty" value="<?php echo $qty; ?>" class="form-control form-control-sm" placeholder="Quantity">
-	</div>
-
-	<div class="input-group mb-3">
 	  <input type="file" <?php echo $image_required; ?> name='image' accept="image/x-png,image/jpeg"  class="form-control">
 	  <label class="input-group-text">Upload Image</label>
 	</div>
@@ -250,25 +264,35 @@ ob_end_flush();
 	</div>
 
 	<div class="input-group mb-3">
-	  <label class="input-group-text">Meta Title</label>
-	  <textarea class="form-control form-control-sm" required name="meta_title" rows="2" placeholder="Enter Product Meta Title"><?php echo $meta_title; ?></textarea>
-	</div>
-
-	<div class="input-group mb-3">
-	  <label class="input-group-text">Meta Description</label>
-	  <textarea class="form-control form-control-sm" required name="meta_desc" rows="2" placeholder="Enter Product Meta Discription"><?php echo $meta_desc; ?></textarea>
-	</div>
-
-	<div class="input-group mb-3">
 	  <label class="input-group-text">Meta Keyword</label>
 	  <textarea class="form-control form-control-sm" required name="meta_keyword" rows="2" placeholder="Enter Product Meta Keyword"> <?php echo $meta_keyword; ?></textarea>
 	</div>
+
+	<div class="col-12">
+        <div class="container">
+          Add Tags | Press enter after you typed.
+          <br />
+          <br />
+          <div class="tag-container">
+            <input>  
+          </div>
+        </div>
+    </div>
 
   
   <a href="<?php echo SITE_ADMIN_PATH."products" ?>" name="submit" class="btn btn-secondary" style="line-height: 1.1">Back</a>
   <button type="submit" name="submit" class="btn btn-dark float-end" style="line-height: 1.1">Submit</button>
 </form>
+<script type="text/javascript" src="<?php echo SITE_ADMIN_PATH ?>assets/js/add_product.js"></script>
+
+<script type="text/javascript">
+<?php foreach ($tags as $tag) { ?>
+	createTagMan('<?php echo $tag ?>');
+<?php } ?>
+</script>
 
 </main>
+
+
 
 

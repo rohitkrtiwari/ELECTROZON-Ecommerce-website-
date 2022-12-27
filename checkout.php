@@ -23,7 +23,7 @@ $msg='';
 if(isset($_POST['submit'])){
     $username=get_safe_value($conn,$_POST['username']);
     $password=md5(get_safe_value($conn,$_POST['password']));
-    $sql="select * from customers where username = '$username' and password = '$password'";
+    $sql="SELECT * from customers where username = '$username' and password = '$password'";
     $res=mysqli_query($conn, $sql);
     $count=mysqli_num_rows($res); 
     if($username!='' && $password !=''){
@@ -64,7 +64,6 @@ $addresses = getAddress($conn,$user_id, 1);
 if(isset($_SESSION['addId'])){
 }else{
   $_SESSION['addId']="";
-  $_SESSION['payment_method']="";
 }
 
 // POST Request Handler
@@ -86,32 +85,22 @@ if(isset($_POST['type'])){
       }
     }
 
-    // Add Checkout Payment Method Reuqest
-    if($type=='payment_method')
-    {
-      $_SESSION['payment_method'] = get_safe_value($conn,$_POST['data']);
-      foreach ($addresses as $add) {
-        if($add['id']==$_SESSION['addId']){
-            $_SESSION['address'] = $add['address'];
-            $_SESSION['city'] = $add['city'];
-            $_SESSION['post_code'] = $add['post_code'];
-            $_SESSION['phone_number'] = $add['phone_number'];
-            $_SESSION['name'] = $add['name'];
-        }
-      }
-    }
 
     // Place Order 
     if($type=='place_order')
     {
       $addId = $_SESSION['addId'];
-      $payment_method = $_SESSION['payment_method'];
       $total_price = $_SESSION['total_price'];
       $shipping_amount = $_SESSION['shipping_amount'];
-      $_SESSION['username'] = $user_id;
       $crt_time = crt_time();
 
-      $place_order_sql = "INSERT INTO `order`(`username`, `address_id`, `total_price`,`shipping_charge`, `payment_status`, `order_status`, `added_on`) VALUES ('$user_id', '$addId', '$total_price', '$shipping_amount','pending', 1, '$crt_time')";
+      $userArr = userProfileData($conn, $_SESSION['user_id']);
+      $name = $userArr[0]['fname'];
+      $number = $userArr[0]['mobile'];
+
+      $txnid = substr(hash('sha256', mt_rand() . microtime()), 0, 20);
+
+      $place_order_sql = "INSERT INTO `order`(`username`, `address_id`, `total_price`,`shipping_charge`, `payment_status`, `order_status`, `added_on`, `txnid`) VALUES ('$user_id', '$addId', '$total_price', '$shipping_amount', 'pending', 2, '$crt_time', '$txnid')";
       
       if(mysqli_query($conn, $place_order_sql)){
         $order_id= mysqli_insert_id($conn);
@@ -123,22 +112,87 @@ if(isset($_POST['type'])){
           mysqli_query($conn, $order_detail_sql);
         }
 
-        $_SESSION['ORDER_ID'] = $order_id;
+        make_payment($txnid, $total_price, $_SESSION['name'], $user_id, $_SESSION['phone_number']);
 
-        emptyCart($conn, $user_id);
-
-        unset($_SESSION['addId']);
-        unset($_SESSION['payment_method']);
-        unset($_SESSION['address']);
-        unset($_SESSION['city']);
-        unset($_SESSION['post_code']);
-        unset($_SESSION['phone_number']);
-        unset($_SESSION['name']);
-        
-        header('location:'.SITE_PATH.'PaytmKit/pgRedirect.php');
       } else { return false; }
 }
 }
+
+
+
+function make_payment($txnid, $total_price, $name, $username, $phone){
+  $MERCHANT_KEY = "gtKFFx"; 
+  $SALT = "eCwWELxi";
+  $hash_string = '';
+  //$PAYU_BASE_URL = "https://secure.payu.in";
+  $PAYU_BASE_URL = "https://test.payu.in";
+  $action = '';
+  $posted = array();
+  if(!empty($_POST)) {
+    foreach($_POST as $key => $value) {    
+      $posted[$key] = $value; 
+    }
+  }
+  $formError = 0;
+  $posted['txnid']=$txnid;
+  $posted['amount']=$total_price;
+  $posted['firstname']=$name;
+  $posted['email']=$username;
+  $posted['phone']=$phone;
+  $posted['productinfo']="productinfo";
+  $posted['key']=$MERCHANT_KEY ;
+  $hash = '';
+  $hashSequence = "key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5|udf6|udf7|udf8|udf9|udf10";
+  if(empty($posted['hash']) && sizeof($posted) > 0) {
+    if(
+            empty($posted['key'])
+            || empty($posted['txnid'])
+            || empty($posted['amount'])
+            || empty($posted['firstname'])
+            || empty($posted['email'])
+            || empty($posted['phone'])
+            || empty($posted['productinfo'])
+           
+    ) {
+      $formError = 1;
+    } else {    
+    $hashVarsSeq = explode('|', $hashSequence);
+    foreach($hashVarsSeq as $hash_var) {
+        $hash_string .= isset($posted[$hash_var]) ? $posted[$hash_var] : '';
+        $hash_string .= '|';
+      }
+      $hash_string .= $SALT;
+      $hash = strtolower(hash('sha512', $hash_string));
+      $action = $PAYU_BASE_URL . '/_payment';
+    }
+  } elseif(!empty($posted['hash'])) {
+    $hash = $posted['hash'];
+    $action = $PAYU_BASE_URL . '/_payment';
+  }
+
+  try{
+    unset($_SESSION['addId']);
+    unset($_SESSION['payment_method']);
+    unset($_SESSION['address']);
+    unset($_SESSION['city']);
+    unset($_SESSION['post_code']);
+    unset($_SESSION['phone_number']);
+    unset($_SESSION['name']);
+  }
+  catch (Exception $e){
+    // echo $e
+  }
+
+  $formHtml ='<form method="post" name="payuForm" id="payuForm" action="'.$action.'"><input type="hidden" name="key" value="'.$MERCHANT_KEY.'" /><input type="hidden" name="hash" value="'.$hash.'"/><input type="hidden" name="txnid" value="'.$posted['txnid'].'" /><input name="amount" type="hidden" value="'.$posted['amount'].'" /><input type="hidden" name="firstname" id="firstname" value="'.$posted['firstname'].'" /><input type="hidden" name="email" id="email" value="'.$posted['email'].'" /><input type="hidden" name="phone" value="'.$posted['phone'].'" /><textarea name="productinfo" style="display:none;">'.$posted['productinfo'].'</textarea><input type="hidden" name="surl" value="https://electrozon.in/payment_complete.php" /><input type="hidden" name="furl" value="https://electrozon.in/payment_fail.php"/><input type="submit" style="display:none;"/></form>';
+
+  echo $formHtml;
+  
+  echo '<script>document.getElementById("payuForm").submit();</script>';
+}
+
+
+
+
 
 ?>
 
@@ -276,12 +330,14 @@ require('prerequisite/main-menu.php');
                       <form method="POST" action="checkout">
                         <div class="mb-3">
                           <label class="form-label">Email address</label>
-                          <input type="email" name='username' required class="form-control">
+                          <input type="email" name='username' id="email" required class="form-control">
                           <div class="form-text">We'll never share your email with anyone else.</div>
+                            <span id="emailcheck" ></span>
                         </div>
                         <div class="mb-1">
                           <label class="form-label">Password</label>
-                          <input type="password" name="password" class="form-control">
+                          <input type="password" name="password" id="password" class="form-control">
+                           <span id="passcheck" ></span>
                         </div>
                         <a href="<?php echo SITE_PATH?>forgot_password" class="text-decoration-none p-sml text-primary">Forgotten Password</a><br>
                         <button type="submit" name="submit" id="login-checkout"class="btn btn-dark mt-3" style="line-height: 1.1;">Submit</button>
@@ -295,9 +351,7 @@ require('prerequisite/main-menu.php');
 
             <p class="acc_disabled">  STEP 2 BILLING DETAILS</p>
 
-            <p class="acc_disabled">  STEP 3: PAYMENT METHODS</p>
-
-            <p class="acc_disabled">  STEP 4: CONFIRM ORDER</p>
+            <p class="acc_disabled">  STEP 3: CONFIRM ORDER</p>
 
         <?php } else if($_SESSION['addId']==''){ ?>
 
@@ -374,121 +428,8 @@ require('prerequisite/main-menu.php');
               </div>
             </div>
 
-            <p class="acc_disabled">  STEP 3: PAYMENT METHODS</p>
+            <p class="acc_disabled">  STEP 3: CONFIRM ORDER</p>
 
-            <p class="acc_disabled">  STEP 4: CONFIRM ORDER</p>
-
-        <?php } else if($_SESSION['payment_method']==''){ ?>
-
-
-            <p class="acc_disabled">  STEP 1: CUSTOMER INFORMATION</p>
-
-            <!-- Billing Details -->
-            <div class="card">
-              <div class="card-header" id="headingTwo">
-                <h2 class="mb-0">
-                  <button class="btn collapsed" type="button"data-toggle="collapse"data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                    STEP 2: BILLING DETAILS
-                    <div id="alert-msg" style="background-color: #3d1a54;"></div>
-                  </button>
-                </h2>
-              </div>
-
-              <div id="collapseTwo" class="collapse " aria-labelledby="headingTwo" data-parent="#accordion">
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col">
-
-                      <div class="form-check">
-                        <input class="form-check-input" type="radio" name="billing-address-selecter" id="register" value="2" checked>
-                        <label class="form-check-label p-light" for="flexRadioDefault2">
-                          Select Address
-                        </label>
-                      </div>
-
-                      <div class="row mx-3 my-2 toHide" id="add-2">
-                            <?php if (count($addresses) == 0){ ?>
-                              <option selected>No saved address found</option>
-                            <?php } else { foreach ($addresses as $address) { ?>
-
-                              <div class="card col-sm-4 me-md-3 my-3" style="width: 18rem;">
-                                <div class="card-body">
-                                  <h5 class="card-title">
-                                    <?php echo "<b>".$address['name']."</b><br>";
-                                       echo "<p class='p-sml p-light'>".$address['address']."<br>";
-                                       echo $address['post_code']."<br>";
-                                       echo $address['phone_number']."<br></p>";?>
-                                  </h5>
-                                  <a href="#" onclick="AddressData(<?php echo $address['id']; ?>)" class="btn btn-dark">Deliver To this Address</a>
-                                </div>
-                              </div>
-
-
-                            <?php } } ?>  
-
-                        
-                      </div>
-
-                      <div class="form-check">
-                        <input class="form-check-input" type="radio" name="billing-address-selecter" id="register" value="1" >
-                        <label class="form-check-label p-light" for="flexRadioDefault2">
-                          Add New Address
-                        </label>
-                      </div>
-                      
-                      
-
-                      <div class=" toHide"  id="add-1" style="display:none">
-                        
-                        <p class="p-sml p-light my-2 mx-2">Adding a New Address takes some time for varification for first time. This address will be saved and can be used for future purchases</p>
-                        <button type="submit" id ="address-manager" class="btn btn-dark mx-2" style="line-height: 1.1;">Continue</button>
-                      </div>
-
-
-
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Payment Confirmation  -->
-            <div class="card">
-              <div class="card-header" id="headingThree">
-                <h2 class="mb-0">
-                  <button class="btn " id="payment_method_btn" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
-                    STEP 3: PAYMENT METHOD
-                  </button>
-                </h2>
-              </div>
-              <div id="collapseThree" class="collapse show" aria-labelledby="headingThree" data-parent="#accordion">
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col">
-                      <p class="p-sml p-light">Please select the preferred payment method to use on this order.</p>
-                      <div class="form-check">
-                        <input class="form-check-input" type="radio" name="payment_method" id="netbanking" value="netbanking" checked>
-                        <label class="form-check-label p-light" for="flexRadioDefault2">
-                          Debit Card, Credit Card, NetBanking, UPI and Wallet
-                        </label>
-                      </div>
-
-                      <div class="pull-right">
-                        <div class="form-check">
-                          I have read and agree to the 
-                          <b><a href="#" class="product-link">Shipping, Cancellation, Returns & Refund Policy</a></b>
-                          <input  type="checkbox" name="TandD" value="TandD" id="TandD">
-                          <button  class="btn btn-dark" onclick="PaymentMethod()" style="line-height: 1.1;">Continue</button>
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <p class="acc_disabled">  STEP 4: CONFIRM ORDER</p>
 
         <?php } else { ?>
 
@@ -563,53 +504,17 @@ require('prerequisite/main-menu.php');
               </div>
             </div>
 
-            <!-- Payment Confirmation  -->
+            <!-- Order Confirmation  -->
             <div class="card">
               <div class="card-header" id="headingThree">
                 <h2 class="mb-0">
-                  <button class="btn collapsed" id="payment_method_btn" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                    STEP 3: PAYMENT METHOD
-                  </button>
-                </h2>
-              </div>
-              <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col">
-                      <p class="p-sml p-light">Please select the preferred payment method to use on this order.</p>
-                      <div class="form-check">
-                        <input class="form-check-input" type="radio" name="payment_method" id="netbanking" value="netbanking" checked>
-                        <label class="form-check-label p-light" for="flexRadioDefault2">
-                          Debit Card, Credit Card, NetBanking, UPI and Wallet
-                        </label>
-                      </div>
-
-                      <div class="pull-right">
-                        <div class="form-check">
-                          I have read and agree to the 
-                          <b><a href="#" class="product-link">Shipping, Cancellation, Returns & Refund Policy</a></b>
-                          <input  type="checkbox" name="TandD" value="TandD" id="TandD">
-                          <button  class="btn btn-dark" onclick="PaymentMethod()" style="line-height: 1.1;">Continue</button>
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Order Confirmation  -->
-            <div class="card">
-              <div class="card-header" id="headingFour">
-                <h2 class="mb-0">
-                  <button class="btn" id="confirm_order_btn" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour">
-                    STEP 4: CONFIRM ORDER
+                  <button class="btn" id="confirm_order_btn" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+                    STEP 3: CONFIRM ORDER
                   </button>
                 </h2>
               </div>
 
-              <div id="collapseFour" class="collapse show" aria-labelledby="headingFour" data-parent="#accordion">
+              <div id="collapseThree" class="collapse show" aria-labelledby="headingThree" data-parent="#accordion">
                 <div class="card-body">
                   <div class="row">
                     <h3><b>Review your order</b></h3>
@@ -626,7 +531,7 @@ require('prerequisite/main-menu.php');
                     </div>
                      <div class="col-auto mx-3 my-3 p-3 border rounded">
                       <h5 class="card-title"><b>Payment Method:</b><br></h5>
-                        <?php if($_SESSION['payment_method']=='netbanking'){ echo "Debit Card, Credit Card, NetBanking, UPI and Wallet"; }else{ echo "PayTM"; } ?>
+                        <?php echo "Debit Card, Credit Card, NetBanking, UPI and Wallet"; ?>
                     </div>
                   </div>
                   <div class="row">
@@ -636,7 +541,6 @@ require('prerequisite/main-menu.php');
                           <tr>
                             <th class="p-light p-sml col-sm-7" scope="col">Product Name</th>
                             <th class="p-light p-sml" scope="col">Quantity</th>
-                            <th class="p-light p-sml" scope="col">Tax</th>
                             <th class="p-light p-sml" scope="col">Unit Price</th>
                             <th class="p-light p-sml" scope="col">Total</th>
                           </tr>
@@ -646,7 +550,6 @@ require('prerequisite/main-menu.php');
                           <?php 
                             $i=0;
                             $checkout_amount=0;
-                            $tax_amount=0;
                             foreach ($products as $product) {
                           ?>
                             <tr style="vertical-align: baseline;">
@@ -655,7 +558,6 @@ require('prerequisite/main-menu.php');
                               <td><?php echo $product['name']; ?></td>
                               <td class="p-light p-sml"><?php foreach($cart as $i){ if($i['pid'] == $product['id']){ echo $crt_qty=$i['qty']; } } ?>
                               </td>
-                              <td class="p-light p-sml">IGST(18%)</td>
                               <td class="p-light p-sml">
                                 <i class="fa fa-inr"></i> <?php echo $product['price']; ?>
                               </td>
@@ -664,7 +566,6 @@ require('prerequisite/main-menu.php');
                                 <?php 
                                   echo ($product['price']*$crt_qty); 
                                   $checkout_amount+=($product['price']*$crt_qty);
-                                  $tax_amount+= ($product['price']*$crt_qty)*(18/100);
                                 ?>
                               </td>
                             </tr>
@@ -681,17 +582,19 @@ require('prerequisite/main-menu.php');
                               <td class="text-right p-light"><strong>Sub-Total:</strong></td>
                               <td class="text-right p-light"><i class="fa fa-inr"></i>  <?php echo $checkout_amount.'.00';  ?></td>
                             </tr>
+
+<?php $shipping_amount = shipping_charge($checkout_amount); $_SESSION['shipping_amount']=$shipping_amount;?>
+                            
+                            <?php if($shipping_amount!=''){ ?>
                             <tr>
-                              <td class="text-right p-light"><strong>IGST (18%):</strong></td>
-                              <td class="text-right p-light"><i class="fa fa-inr"></i> <?php echo (int) $tax_amount.'.00';  ?></td>
+                              <td class="text-right p-light"><strong>Shipping Charges:</strong></td>
+                              <td class="text-right p-light"><i class="fa fa-inr"></i> <?php echo $shipping_amount;?></td>
                             </tr>
-                            <tr>
-                              <td class="text-right p-light"><strong>Shipping Changes:</strong></td>
-                              <td class="text-right p-light"><i class="fa fa-inr"></i> <?php $shipping_amount=0; if(($checkout_amount+$tax_amount)<500)$shipping_amount=49; $_SESSION['shipping_amount']=$shipping_amount; echo $shipping_amount;?></td>
-                            </tr>
+                            <?php } ?>
+
                             <tr>
                               <td class="text-right p-light"><strong>Total:</strong></td>
-                              <td class="text-right p-dark"><i class="fa fa-inr"></i> <?php $_SESSION['total_price']=($checkout_amount+$tax_amount+$shipping_amount); echo (int)$_SESSION['total_price'].'.00'; ?></td>
+                              <td class="text-right p-dark"><i class="fa fa-inr"></i> <?php $_SESSION['total_price']=($checkout_amount+$shipping_amount); echo (int)$_SESSION['total_price'].'.00'; ?></td>
                             </tr>
                             <tr class="text-danger fs-4 fw-bold">
                                 <td class="text-right">Order Total:</td>
@@ -704,12 +607,6 @@ require('prerequisite/main-menu.php');
                           </tbody>
                         </table>
                       </div>
-
-                      <!-- <div class="pull-right">
-                        <div class="form-check">
-                          <button class="btn btn-dark" id="place_order_btn" style="line-height: 1.1;">Place Order</button>
-                        </div>
-                      </div> -->
                     </div>
                   </div>
                 </div>
@@ -752,7 +649,79 @@ for (i = 0; i < acc.length; i++) {
   });
 }
 </script>
+<script type="text/javascript">
+ $(document).ready(function(){
+
+   $('#emailcheck').hide();
+   $('#passcheck').hide();
+
+   var email_err = true;
+   var pass_err = true;
+
+   $('#email').keyup(function(){
+    email_check();
+   });
+
+   $('#password').keyup(function(){
+    password_check();
+   });
+
+
+ function email_check(){
+   var user_val = $('#email').val();
+   if(user_val.length == ''){
+     $('#emailcheck').show();
+     $('#emailcheck').html("**Please Fill the Email Address");
+     $('#emailcheck').focus();
+     $('#emailcheck').css("color","red");
+     email_err = false;
+     return false;
+   }else{
+     email_err = true;
+     $('#emailcheck').hide();
+   }
+ }
+
+
+
+ function password_check(){
+   var passwrdstr = $('#password').val();
+     if(passwrdstr.length == ''){
+     $('#passcheck').show();
+     $('#passcheck').html("**Please Fill the password");
+     $('#passcheck').focus();
+     $('#passcheck').css("color","red");
+     pass_err = false;
+     return false;
+   }else{
+     pass_err = true;
+     $('#passcheck').hide();
+   } 
+
+ }
+
+ $('#login-checkout').click(function(){
+  email_err = true;
+  pass_err = true;
+
+
+  email_check();
+  password_check();
+
+
+  if((email_err == true) && (pass_err == true)){
+   return true;
+  }else{
+   return false;
+  }
+
+
+ });
+
+ });
+</script>
 </body>
 </html>
+
 
 

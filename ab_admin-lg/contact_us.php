@@ -1,6 +1,8 @@
 <?php
 ob_start();
 require('home.php');
+
+
 if(isset($_GET['type']) && $_GET['type']!=''){
   $type=get_safe_value($conn,$_GET['type']);
   if($type=='delete'){

@@ -106,9 +106,28 @@ elseif($router == '/forgot_password' || preg_match("/forgot_password\/[a-z]/i", 
 	include('forgot_password.php');
 }
 
-elseif($router == '/404')
+elseif($router == '/errors/not-found')
 {
-	include('404.php');
+	include('errors/not-found.php');
 }
 
+elseif($router == '/errors/bad-request')
+{
+	include('errors/bad-request.php');
+}
+
+elseif($router == '/errors/forbid')
+{
+	include('errors/forbid.php');
+}
+
+elseif($router == '/errors/server-err')
+{
+	include('errors/server-err.php');
+}
+
+else
+{
+	include('errors/not-found.php');
+}
 ?>

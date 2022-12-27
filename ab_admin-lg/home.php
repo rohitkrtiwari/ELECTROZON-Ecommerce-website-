@@ -3,17 +3,27 @@ ob_start();
 require('connection.inc.php');
 require('functions.inc.php');
 session_start();
+
+// Check if user is logged in or not 
 if(isset($_SESSION['ADMIN_LOGIN'])==true && isset($_SESSION['email_verify'])==true){
-  $loggedin = $_SESSION['ADMIN_LOGIN'];
-  $username = $_SESSION['username'];
+  if($_SESSION['ADMIN_LOGIN'] == true && $_SESSION['email_verify']==true)
+  {
+    $loggedin = $_SESSION['ADMIN_LOGIN'];
+    $username = $_SESSION['username'];
+  }else{
+    $loggedin = false;
+    header('location:'.SITE_ADMIN_PATH.'logout');
+    die();  
+  }
 }else{
   $loggedin = false;
   header('location:'.SITE_ADMIN_PATH.'logout');
   die();
 }
 
+
 $request=$_SERVER['REQUEST_URI'];
-$router = str_replace('/electrozon/ab_admin-lg/','',$request);
+$router = str_replace('/ab_admin-lg/','',$request);
 
 ob_end_flush();
 ?>
@@ -153,3 +163,4 @@ $(document).ready(function(){
 
 </body>
 </html>
+

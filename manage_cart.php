@@ -15,7 +15,7 @@ function updateCart($conn, $username, $pid, $qty){
 		echo $sql;
 	}else{
    	return false;
-	}		
+	}
 }
 
 function addCart($conn,$loggedin, $username, $pid, $qty){
@@ -56,6 +56,18 @@ function emptyCart($conn, $username){
    }
 }
 
+function pid_av($conn, $pid, $qty){
+   if($qty>0){   
+      $sql = "SELECT * from product where id = '$pid' and qty >= '$qty'";
+      if(mysqli_num_rows(mysqli_query($conn, $sql))){
+         return true;
+      }else{
+         return false;
+      }
+   }else
+      return false;
+}
+
 if(isset($_POST['type'])){
       $user_id = get_user($conn)[0]; $loggedin = get_user($conn)[1];
    	$type=get_safe_value($conn,$_POST['type']);
@@ -65,33 +77,55 @@ if(isset($_POST['type'])){
    	}
    	if($type=='update'){
    		$username=$user_id;
-   		$pid=get_safe_value($conn,$_POST['pid']);
-   		$qty=get_safe_value($conn,$_POST['qty']);
-   		if(updateCart($conn, $username, $pid, $qty)){
-   			return true;
-   		}else{
-   			return false;
-   		}
+         if((filter_var($_POST['pid'], FILTER_VALIDATE_INT)) && (filter_var($_POST['qty'], FILTER_VALIDATE_INT)))
+         {         
+      		$pid=get_safe_value($conn,$_POST['pid']);
+      		$qty=get_safe_value($conn,$_POST['qty']);
+            if(pid_av($conn, $pid, $qty))
+            {         
+         		if(updateCart($conn, $username, $pid, $qty)){
+         			return true;
+         		}else{
+         			return false;
+         		}
+            }else
+               return false;
+         }else
+            return false;
    	}
+      
       if($type=='add'){
          $username=$user_id;
-         $pid=get_safe_value($conn,$_POST['pid']);
-         $qty=get_safe_value($conn,$_POST['qty']);
-         if(addCart($conn, $loggedin, $username, $pid, $qty)){
-            return true;
-         }else{
+         if((filter_var($_POST['pid'], FILTER_VALIDATE_INT)) && (filter_var($_POST['qty'], FILTER_VALIDATE_INT)))
+         {
+            $pid=get_safe_value($conn,$_POST['pid']);
+            $qty=get_safe_value($conn,$_POST['qty']);
+            if(pid_av($conn, $pid, $qty))
+            {
+               if(addCart($conn, $loggedin, $username, $pid, $qty)){
+                  return true;
+               }else{
+                  return false;
+               }
+            }else
+               return false;
+         }else
             return false;
-         }
       }
+
       if($type=='remove'){
          $username=$user_id;
-         $pid=get_safe_value($conn,$_POST['pid']);
-         if(removeCart($conn, $username, $pid)){
-            return true;
-         }else{
-            return false;
-         }
+         if(filter_var($_POST['pid'], FILTER_VALIDATE_INT))
+         {
+            $pid=get_safe_value($conn,$_POST['pid']);
+            if(removeCart($conn, $username, $pid)){
+               return true;
+            }else{
+               return false;
+            }
+         }return false;
       }
+
       if($type=='empty'){
          $username=$user_id;
          if(emptyCart($conn, $user_id)){

@@ -8,39 +8,28 @@
 				</div>
 				<div class="footer-list">
 					<ul class="list-group">
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">How to Apply Coupon Code</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">How to Apply Reqard points</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Payment</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">About Us</li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Shipping, Cancellation, Returns and Refund</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Policy</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Cash On Delivery (COD) Policy</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Privacy Policy</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Terms & Conditions</a></li>
+						<li class="list-group"><a class="link" href="#new_mySidebar">All Categories</a></li>
+						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>cart">Cart</a></li>
+						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">About Us</a></li>
 					</ul>
 				</div>
 			</div>
 			<div class="col mx-4">
 				<div class="footer-heading mt-2">
-					<font>Customer Service</font>
+					<font class="text-white">Customer Service</font>
 					<hr>
 				</div>
 				<div class="footer-list">
 					<ul class="list-group">
 						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Contact Us</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Site Map</a></li>
+						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>login">Login</a></li>
+						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>register">Create new Account</a></li>
 					</ul>
 				</div>
-				<div class="footer-heading mt-3">
-					<font>Extras</font>
-					<hr>
-				</div>
+
 				<div class="footer-list">
 					<ul class="list-group">
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Brands</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Gift Vouchers</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Affiliates</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Specials</a></li>
+
 					</ul>
 				</div>
 			</div>
@@ -51,10 +40,9 @@
 				</div>
 				<div class="footer-list">
 					<ul class="list-group">
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">My Account</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Order History</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Wish List</a></li>
-						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">Newsletter</a></li>
+						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>my_account">My Account</a></li>
+						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>my_order">My Order</a></li>
+						<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>address_manager">My Addressess</a></li>
 					</ul>
 				</div>
 			</div>
@@ -70,23 +58,15 @@
 							<ul class="list-group">
 								<li class="list-group"><a class="link" href="<?php echo SITE_PATH; ?>contact_us">
 							          <i class="fa fa-phone"></i>
-								+91-8076643316</a></li>
+								<?php echo CONTACT_NUMBER  ?></a></li>
 								<li class="list-group">
 									<a class="link" href="<?php echo SITE_PATH; ?>contact_us">
 							          <i class="fa fa-envelope-o"></i>
-								aakashprajapati987@gmail.com</a></li>
-							</ul>
-						</div>
-					</div>
-					<div class="col">
-						<div class="footer-heading">
-							<font>Contact With US</font>
-							<hr>
-						</div>
-						<div class="col4-footer-list">
-							<ul>
-								<li class="list-group"><a style="color: white;" href="https://www.facebook.com/profile.php?id=100008718097777" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
-								<li class="list-group"><a style="color: white;" href="https://twitter.com/RohitTi15563830" target="_blank"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
+								<?php echo EMAIL  ?></a></li>
+								<div class="row d-flex ms-2 mt-3">
+									<div class="col-auto list-group mx-2"><a style="color: white; font-size: 32px; " href="https://www.youtube.com/channel/UCULYoagPT1WAS9bxen87KUg" target="_blank"><i class="fa fa-youtube-play" aria-hidden="true"></i></a></div>
+									<div class="col-auto list-group mx-2"><a style="color: white; font-size: 32px; " href="https://www.instagram.com/electrozon926/" target="_blank"><i class="fa fa-instagram" aria-hidden="true"></i></a></div>
+								</div>
 							</ul>
 						</div>
 					</div>
@@ -98,10 +78,10 @@
 	<div class="footer-bottom mt-3">
 		<div class="footer-bottom-container">
 			<div class="footer-bottom-col1">
-				<font>Electrozon.com  <?php echo date('Y'); ?> Rohit Tiwari</font>
+				<font>Electrozon.in &#169;  <?php echo date('Y'); ?></font>
 			</div>
 			<div class="footer-bottom-col2">
-				<font>Site Map | Contact Us</font>
+				<font>Contact Us</font>
 			</div>
 		</div>
 	</div>

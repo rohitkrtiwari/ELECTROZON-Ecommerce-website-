@@ -29,24 +29,28 @@ if(isset($_POST['type'])){
 	       return false;
 	    }
 	}
+}
 
-   	// Add New Address Reuqest
-   	if($type=='add'){
-      $csrf_token=get_safe_value($conn,$_POST['csrf_token']);
-      if($csrf_token == $_SESSION['csrf_token']['add_new_address'])
 
-	    $username=$user_id;
-      $name=get_safe_value($conn,$_POST['name']);
-      $address=get_safe_value($conn,$_POST['address']);
-      $city=get_safe_value($conn,$_POST['city']);
-      $post_code=get_safe_value($conn,$_POST['post_code']);
-      $phone_number=get_safe_value($conn,$_POST['phone_number']);
-	    if(addNewAddress($conn, $username, $name, $address, $city, $post_code, $phone_number)){
-	       return true;
-	    }else{
-	       return false;
-	    }
-	}
+// Add New Address Reuqest
+if(isset($_POST['add-new-address'])){
+    $csrf_token=get_safe_value($conn,$_POST['csrf_token']);
+    if($csrf_token == $_SESSION['csrf_token']['add_new_address'])
+    {
+        $username=$user_id;
+        $name=get_safe_value($conn,$_POST['name']);
+        $address=get_safe_value($conn,$_POST['address']);
+        $city=get_safe_value($conn,$_POST['city']);
+        $post_code=get_safe_value($conn,$_POST['post_code']);
+        $phone_number=get_safe_value($conn,$_POST['phone_number']);
+      if(addNewAddress($conn, $username, $name, $address, $city, $post_code, $phone_number)){
+         header('location:'.SITE_PATH.'address_manager ');
+      }else{
+         $msg = "Error";
+      }
+    }
+    else
+      $msg = "Bad Request";
 }
 
 // Function for deleting Pending Addresses
@@ -93,6 +97,24 @@ function addNewAddress($conn, $username, $name, $address, $city, $post_code, $ph
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 	<script src="assets/js/custom.js"></script>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <style type="text/css">
+    .add_status{
+      position: absolute;
+      top: 5%;
+      left: 0;
+      padding: 5px 10px;
+      color: #fff;
+      font-size: 15px;
+    }
+    .add_status_verified{
+      background: #008000;
+    }
+    .add_status_pending{
+      background: #FF0000;
+    }
+  </style>
+
 	<title>Electrozon Addresss Manager</title>
 </head>
 <body>
@@ -118,192 +140,127 @@ require('prerequisite/main-menu.php');
 
 
 <div id="alert-msg" style="background-color: #3d1a54;"></div>
-<section class="grid-view my_order_resp">  
-  <div class="container-fluid p-5" style="padding: 50px 0;">
-    <div class="row">
-      <div class="content">
-        <h2>Address Manager</h2>
+<section class="bg-white">  
+  <div class="container-fluid mt-2">
+    <div class="row my-3">
+
+      <div class="col-auto mt-2">
+        <nav id="sidebarMenu" class=" d-md-block bg-light sidebar collapse">
+        <h3 class="mx-3 fw-bold">My Account</h3>
+        <h5 class="mx-3 mt-3">Manage Account</h5>
+          <div class="position-sticky pt-3">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="<?php echo SITE_PATH ?>my_account">
+                  <span data-feather="shopping-cart"></span>
+                  Manage Profile
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="<?php echo SITE_PATH ?>my_order">
+                  <span data-feather="file"></span>
+                  Orders History
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="<?php echo SITE_PATH ?>address_manager">
+                  <span data-feather="users"></span>
+                  Shipping Addresses
+                </a>
+              </li>
+            </ul>
+
+          </div>
+        </nav>
+      </div>
+
+      <div class="col pt-1">
+        <p > <a class="fs-14 text-decoration-none fw-bold" href="<?php echo SITE_PATH ?>">Home > </a> <a class="fs-14 text-decoration-none fw-bold" href="<?php echo SITE_PATH ?>my_account">My Account > </a> <a class="fs-14 text-decoration-none text-danger fw-bold" href="#"> Address Manager </a></p>
+        <h2 class="text-dark">Address Manager</h2>
+        <nav class="mt-4">
+          <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">My Addresses</a>
+            <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Add New Address</a>
+          </div>
+        </nav>
+        <div class="tab-content" id="nav-tabContent">
+          
+          <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+            <div class="row mx-3 my-2">
+              <?php if (count($s_addresses) == 0){ ?>
+                <option selected>No saved address found</option>
+              <?php } else { foreach ($s_addresses as $address) { ?>
+
+                <div class="card col-sm-4 me-md-3 my-3" style="width: 18rem;">
+                  <div class="card-body">
+                    <?php if($address['verified'] == 1) echo '<p class="add_status add_status_verified">Verified</p>'; else echo '<p class="add_status add_status_pending">Pending</p>'; ?>
+                    <h5 class="card-title mt-5">
+                      <?php echo "<b>".$address['name']."</b><br>";
+                         echo "<p class='p-sml p-light'>".$address['address']."<br>";
+                         echo $address['post_code']."<br>";
+                         echo $address['phone_number']."<br></p>";?>
+                    </h5>
+                  </div>
+                </div>
+              <?php } } ?>  
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+            <!-- Add New Address Form -->
+            <form method="POST" class="my-3">
+              <input type="text" name="csrf_token" id="csrf_token" value="<?php echo csrf_token('add_new_address'); ?>" hidden>
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label pull-right p-sml p-light">* Name</label>
+                <div class="col-sm-10">
+                  <input type="text" name="name" class="form-control" placeholder="Name" required>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label pull-right p-sml p-light">* Address</label>
+                <div class="col-sm-10">
+                  <input type="text" name="address" class="form-control" placeholder="Address" required>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label pull-right p-sml p-light">* City</label>
+                <div class="col-sm-10">
+                  <input type="text" name="city" class="form-control" placeholder="City" required>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label pull-right p-sml p-light">* Post Code</label>
+                <div class="col-sm-10">
+                  <input type="text" name="post_code" class="form-control" placeholder="Post Code" required>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label pull-right p-sml p-light">* Country</label>
+                <div class="col-sm-10">
+                  <select class="form-select" aria-label="Disabled select example" disabled>
+                    <option selected>India</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label pull-right p-sml p-light">* Mobile</label>
+                <div class="col-sm-10">
+                  <input type="text" name="phone_number" class="form-control" placeholder="Enter your phone Number" required>
+                </div>
+              </div>
+
+              <button name="add-new-address" type="submit" class="btn btn-dark pull-right" style="line-height: 1.1;">Continue</button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
-
-    <div class="row">
-
-      <div class="col">
-
-      	<!-- Saved Address Heading -->
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="billing-address-selecter" id="register" value="3" checked>
-          <label class="form-check-label p-light" for="flexRadioDefault2">
-            Saved Address
-          </label>
-        </div>
-
-      	<!-- Saved Address Form -->
-        <div class="row mb-3 mt-2 toHide" id="add-3">
-          <div class="col-sm-12">
-            <table class="table table-striped table-sm table_scroll_x">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Name</th>
-                  <th>Address</th>
-                  <th>City</th>
-                  <th>Post Code</th>
-                  <th>Phone Number</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php if (count($s_addresses) == 0){ ?>
-                  <td>No Saved Address Found</td>
-                  <td>Add a new Address </td>
-
-                <?php } else { $i=0; foreach ($s_addresses as $s_address) { if($s_address['verified'] == 1){$i=$i+1;
-                ?>
-                  <tr>
-                    <td><?php echo $i; ?></td>
-                    <td><?php echo $s_address['name']; ?></td>
-                    <td><?php echo $s_address['address']; ?></td>
-                    <td><?php echo $s_address['city']; ?></td>
-                    <td><?php echo $s_address['post_code']; ?></td>
-                    <td><?php echo $s_address['phone_number']; ?></td>
-                    <td class="badge-red">Verified</td>
-                    <td>
-                      <div class="op-link">
-                        <span class="badge-red"><a onclick="DeleteAddress(<?php echo $s_address['id']; ?>)" href="#">Delete</a></span>
-                      </div>
-                    </td>
-                  <?php } } } ?>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-
-        <!-- Pending Address Heading -->
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="billing-address-selecter" id="register" value="2">
-          <label class="form-check-label p-light" for="flexRadioDefault2">
-            Pending Address Request
-          </label>
-        </div>
-
-      	<!-- Pending Address Form -->
-        <div class="row mb-3 mt-2 toHide" id="add-2"  style="display:none">
-          <div class="col-sm-12">
-
-
-          	<table class="table table-striped table-sm table_scroll_x">
-	          <thead>
-	            <tr>
-	              <th>#</th>
-                <th>Name</th>
-	              <th>Address</th>
-	              <th>City</th>
-	              <th>Post Code</th>
-	              <th>Phone Number</th>
-	              <th>Status</th>
-	              <th></th>
-	            </tr>
-	          </thead>
-	          <tbody>
-	            <?php if (count($s_addresses) == 0){ ?>
-	              <td>No requests Found</td>
-
-	            <?php } else { $i=0; foreach ($s_addresses as $s_address) { if($s_address['verified'] == 0){$i=$i+1;
-	            ?>
-	              <tr>
-	                <td><?php echo $i; ?></td>
-                  <td><?php echo $s_address['name']; ?></td>
-	                <td><?php echo $s_address['address']; ?></td>
-	                <td><?php echo $s_address['city']; ?></td>
-	                <td><?php echo $s_address['post_code']; ?></td>
-	                <td><?php echo $s_address['phone_number']; ?></td>
-	                <td class="badge-red">Pending</td>
-	                <td>
-	                  <div class="op-link">
-	                    <span class="badge-red"><a onclick="DeleteAddress(<?php echo $s_address['id']; ?>)" href="#">Delete</a></span>
-	                  </div>
-	                </td>
-	              <?php } } } ?>
-	            </tr>
-	          </tbody>
-	        </table>
-
-
-            
-          </div>
-        </div>
-
-
-      	<!-- Add New Address Heading -->
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="billing-address-selecter" id="register" value="1" >
-          <label class="form-check-label p-light" for="flexRadioDefault2">
-            Add a New Address
-          </label>
-        </div>
-        
-      	<!-- Add New Address Form -->
-        <form method="POST" id="add-1" class="toHide" style="display:none">
-          <input type="text" name="csrf_token" id="csrf_token" value="<?php echo csrf_token('add_new_address'); ?>" hidden>
-          <div class="row mb-3">
-            <label class="col-sm-2 col-form-label pull-right p-sml p-light">* Name</label>
-            <div class="col-sm-10">
-              <input type="text" id="name" class="form-control" placeholder="Name" required>
-            </div>
-          </div>
-
-          <div class="row mb-3">
-            <label class="col-sm-2 col-form-label pull-right p-sml p-light">* Address</label>
-            <div class="col-sm-10">
-              <input type="text" id="address" class="form-control" placeholder="Address" required>
-            </div>
-          </div>
-
-          <div class="row mb-3">
-            <label class="col-sm-2 col-form-label pull-right p-sml p-light">* City</label>
-            <div class="col-sm-10">
-              <input type="text" id="city" class="form-control" placeholder="City" required>
-            </div>
-          </div>
-
-          <div class="row mb-3">
-            <label class="col-sm-2 col-form-label pull-right p-sml p-light">* Post Code</label>
-            <div class="col-sm-10">
-              <input type="text" id="post_code" class="form-control" placeholder="Post Code" required>
-            </div>
-          </div>
-
-          <div class="row mb-3">
-            <label class="col-sm-2 col-form-label pull-right p-sml p-light">* Country</label>
-            <div class="col-sm-10">
-              <select class="form-select" aria-label="Disabled select example" disabled>
-                <option selected>India</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="row mb-3">
-            <label class="col-sm-2 col-form-label pull-right p-sml p-light">* Mobile</label>
-            <div class="col-sm-10">
-              <input type="text" id="phone_number" class="form-control" placeholder="Enter your phone Number" required>
-            </div>
-          </div>
-
-          <button name="add-new-address" id="add-new-address" class="btn btn-dark pull-right" style="line-height: 1.1;">Continue</button>
-        </form>
-
-
-
-      </div>
-    </div>
-
-
   </div>
-
 </section>
 
 <!-- Footer Section -->

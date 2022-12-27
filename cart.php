@@ -56,10 +56,13 @@ require('prerequisite/main-menu.php');
 
 <!-- Main Body Section -->
 
+<p class="mt-2" > <a class="fs-14 ms-5 text-decoration-none fw-bold" href="<?php echo SITE_PATH ?>">Home > </a> <a class="fs-14 text-decoration-none text-danger fw-bold" href="#"> Cart </a></p>
+
 <?php if(!$cart_empty){ ?>
 
 <!-- Full View Cart -->
-<section class="grid-view" id="cart_full_view">
+<section id="cart_full_view">
+
   <div class="container" style="padding: 50px 0;">
     <div class="row">
       <div class="content">
@@ -73,7 +76,6 @@ require('prerequisite/main-menu.php');
                 <th scope="col">Image</th>
                 <th scope="col" style="width: 650px;">Product Name</th>
                 <th scope="col">Quantity</th>
-                <th scope="col">Tax</th>
                 <th scope="col">Unit Price</th>
                 <th scope="col">Total</th>
               </tr>
@@ -104,7 +106,6 @@ require('prerequisite/main-menu.php');
                     </select>
                   </td>
 
-                  <td>IGST(18%)</td>
                   <td>
                     <i class="fa fa-inr"></i> <?php echo $product['price']; ?>
                   </td>
@@ -112,8 +113,7 @@ require('prerequisite/main-menu.php');
                     <i class="fa fa-inr"></i> 
                     <?php 
                       echo ($product['price']*$crt_qty); 
-                      $checkout_amount+=($product['price']*$crt_qty);
-                      $tax_amount+= ($product['price']*$crt_qty)*(18/100);
+                      $checkout_amount+=($product['price']*$crt_qty);;
                     ?>
                   </td>
                   <td> 
@@ -129,7 +129,7 @@ require('prerequisite/main-menu.php');
     </div>
   </div>
 
-
+<?php $shipping_amount = shipping_charge($checkout_amount); ?>
 
   <div class="row"  style="margin-right: auto;">
     <div class="col-sm-4 align-right">
@@ -139,17 +139,15 @@ require('prerequisite/main-menu.php');
             <td class="text-right"><strong>Sub-Total:</strong></td>
             <td class="text-right"><i class="fa fa-inr"></i>  <?php echo $checkout_amount;  ?></td>
           </tr>
-          <tr>
-            <td class="text-right"><strong>IGST (18%):</strong></td>
-            <td class="text-right"><i class="fa fa-inr"></i> <?php echo (int) $tax_amount;  ?></td>
-          </tr>
+          <?php if($shipping_amount!=''){ ?>
           <tr>
             <td class="text-right"><strong>Shipping Charges:</strong></td>
-            <td class="text-right"><i class="fa fa-inr"></i> <?php $shipping_amount=0; if(($checkout_amount+$tax_amount)<500)$shipping_amount=49; echo $shipping_amount;?></td>
+            <td class="text-right"><i class="fa fa-inr"></i> <?php  echo $shipping_amount;?></td>
           </tr>
+          <?php } ?>
           <tr>
             <td class="text-right"><strong>Total:</strong></td>
-            <td class="text-right"><i class="fa fa-inr"></i> <?php echo (int) ($checkout_amount+$tax_amount);?></td>
+            <td class="text-right"><i class="fa fa-inr"></i> <?php $checkout_amount+=$shipping_amount; echo (int) $checkout_amount;?></td>
           </tr>    
         </tbody>
       </table>
@@ -188,11 +186,8 @@ require('prerequisite/main-menu.php');
 
         <div class="col-8">
           <?php 
-            echo "<span class='p-dark'><i class='fa fa-inr'></i>".($product['price']*$crt_qty)."</span>";
-            echo "<span class='p-sml p-light'> <i class='fa fa-inr'></i><s>".($product['mrp']*$crt_qty)."</s></span>"; 
-            echo "<span class='prdct-price-percent'> ".number_format(($product['price']/$product['mrp'])*100, 2)."% off</span>";
+            echo "<span class='p-dark'><i class='fa fa-inr'></i>".($product['price'])."</span>";
             $checkout_amount+=($product['price']*$crt_qty);
-            $tax_amount+= ($product['price']*$crt_qty)*(7/100);
           ?>
         </div>
         
@@ -212,6 +207,7 @@ require('prerequisite/main-menu.php');
     </div>
   <?php } ?>
 
+
   <div class="row mt-3 border" style="background: #fff;">
     <div class="col-sm-6 align-left">
       <table class="table table-hover">
@@ -223,17 +219,15 @@ require('prerequisite/main-menu.php');
             <td class="text-right"><strong>Sub-Total:</strong></td>
             <td class="text-right"><i class="fa fa-inr"></i>  <?php echo $checkout_amount;  ?></td>
           </tr>
-          <tr>
-            <td class="text-right"><strong>IGST (18%):</strong></td>
-            <td class="text-right"><i class="fa fa-inr"></i> <?php echo (int) $tax_amount;  ?></td>
-          </tr>
+          <?php if($shipping_amount!=''){ ?>
           <tr>
             <td class="text-right"><strong>Shipping Charges:</strong></td>
-            <td class="text-right"><i class="fa fa-inr"></i> <?php $shipping_amount=0; if(($checkout_amount+$tax_amount)<500)$shipping_amount=49; echo $shipping_amount;?></td>
+            <td class="text-right"><i class="fa fa-inr"></i> <?php echo $shipping_amount;?></td>
           </tr>
+        <?php } ?>
           <tr>
             <td class="text-right"><strong>Total:</strong></td>
-            <td class="text-right"><i class="fa fa-inr"></i> <?php echo (int) ($checkout_amount+$tax_amount);?></td>
+            <td class="text-right"><i class="fa fa-inr"></i><?php $checkout_amount+=$shipping_amount; echo (int) $checkout_amount;?></td>
           </tr> 
         </tbody>
       </table>
@@ -279,5 +273,4 @@ require('prerequisite/footer.php');
 
 </body>
 </html>
-
 

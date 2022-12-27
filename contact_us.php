@@ -7,20 +7,14 @@ $msg='';
 $user_id = get_user($conn)[0]; $loggedin = get_user($conn)[1];
 
 if(isset($_POST['submit'])){
-  $csrf_token = get_safe_value($conn, $_POST['csrf_token']);
-  if($_SESSION['csrf_token']['contact_us']  == $csrf_token)
-  {
-    $user_name = get_safe_value($conn, $_POST['user_name']);
-    $mobile = get_safe_value($conn, $_POST['mobile']);
-    $email = get_safe_value($conn, $_POST['email']);
-    $query = get_safe_value($conn, $_POST['query']);
-    $sql = "INSERT INTO contact_us(name, mobile,email, query, user_id) VALUES ('$user_name','$mobile','$email','$query', '$user_id')";
-    $res = mysqli_query($conn, $sql);
-    if($res){
-      $msg = "You query have been submitted succesfully";
-    }
-  }else{
-      $msg = "Bad request Detected";
+  $user_name = get_safe_value($conn, $_POST['user_name']);
+  $mobile = get_safe_value($conn, $_POST['mobile']);
+  $email = get_safe_value($conn, $_POST['email']);
+  $query = get_safe_value($conn, $_POST['query']);
+  $sql = "INSERT INTO contact_us(name, mobile,email, query) VALUES ('$user_name','$mobile','$email','$query')";
+  $res = mysqli_query($conn, $sql);
+  if($res){
+    $msg = "You query have been submitted succesfully";
   }
 }
 ?>
@@ -39,12 +33,10 @@ if(isset($_POST['submit'])){
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
   <script src="<?php echo SITE_PATH; ?>assets/js/custom.js"></script>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="<?php echo SITE_PATH ?>assets/css/theme.css" rel="stylesheet">
-  <link href="<?php echo SITE_PATH ?>assets/css/style.css" rel="stylesheet">
-  <link href="<?php echo SITE_PATH ?>assets/css/preloader.css" rel="stylesheet">
-  <link href="<?php echo SITE_PATH ?>assets/css/header.css" rel="stylesheet">
+  <link href="<?php echo SITE_PATH; ?>assets/css/style.css" rel="stylesheet">
+	<link href="<?php echo SITE_PATH; ?>assets/css/preloader.css" rel="stylesheet">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<title>Electrozon - Contact-Us</title>
+	<title>Contact Us - Electrozon</title>
 
 </head>
 <body>
@@ -90,7 +82,6 @@ require('prerequisite/main-menu.php');
     <h2>Contact Us Form</h2> 
     <div class="contact-form"> 
       <form method="post" action="contact_us.php" class="form-control"> 
-        <input type="text" name="csrf_token" hidden value="<?php echo csrf_token('contact_us'); ?>"> 
         <div class="mb-3"> 
           <label class="form-label">Your Name</label> 
           <input type="text" name="user_name" class="form-control" required> 
@@ -110,7 +101,7 @@ require('prerequisite/main-menu.php');
         </div> 
         <div class="mb-3"> 
           <label class="form-label">Query</label> 
-          <input type="text" maxlength="500" name="query" class="form-control" required>
+          <input type="text" name="query" class="form-control" required>
         </div>
           <button type="submit" name="submit" class="btn btn-primary">Submit</button>
       </form>

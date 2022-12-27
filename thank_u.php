@@ -2,20 +2,16 @@
 session_start();
 require('connection.inc.php');
 require('functions.inc.php');
-// following files need to be included
-require("PaytmKit/lib/config_paytm.php");
-require("PaytmKit/lib/encdec_paytm.php");
-
+$status='';
 $user_id = get_user($conn)[0]; $loggedin = get_user($conn)[1];
 
-
-$new_arrivals_data=get_product($conn,6);
-if(isset($_GET['status'])!=''){
-  $status = get_safe_value($conn, $_GET['status']);
-}else{
-  header('location: '.SITE_PATH.'cart');
+if(isset($_GET['e'])){
+  $e = get_safe_value($conn, $_GET['e']);
+  if($e == SUCCESS or $e == FAILURE){ }
+  else  header('location:'.SITE_PATH.'errors/not-found');
 }
-
+else
+  header('location:'.SITE_PATH.'errors/not-found');
 
 ?>
 
@@ -62,7 +58,7 @@ require('prerequisite/main-menu.php');
 ?>
 
 <?php
-if($status == "success"){ ?>
+if($e == SUCCESS){ ?>
 <div class="cart-empty-alert">
   <center><h1 style="font-size: 90px;"><b>Thank You. <i class="fa fa-smile-o"></i></b></h1></center>
   <center><h1 style="font-size: 40px;">Your order has been placed successfully.</h1></center>
@@ -72,7 +68,7 @@ if($status == "success"){ ?>
   	<a href="<?php echo SITE_PATH ?>my_order" class="btn btn-dark">View Your Orders</a>
   </center>
 </div>
-<?php }else{ ?>
+<?php } elseif($e == FAILURE) { ?>
 
 <div class="cart-empty-alert">
   <center><h1 style="font-size: 90px;"><b>Order Failed<i class="fa fa-sad-o"></i></b></h1></center>
@@ -84,9 +80,7 @@ if($status == "success"){ ?>
   </center>
 </div>
 
-
-<?php }?>
-
+<?php } ?>
 
 <!-- Footer Section -->
 
@@ -97,3 +91,5 @@ require('prerequisite/footer.php');
 
 </body>
 </html>
+
+

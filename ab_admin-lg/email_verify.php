@@ -4,6 +4,15 @@ require('functions.inc.php');
 session_start();
 $msg='';
 
+if(isset($_SESSION['otp_attempt_count'])){}
+else{
+    $_SESSION['otp_attempt_count'] = 0;
+}
+// Restrict entry of blocked users
+if(user_is_blocked($conn)){
+    header('location:'.SITE_PATH.'errors/forbid ');
+}
+
 
 // Redirect user to login page if not logged in
 if(isset($_SESSION['ADMIN_LOGIN'])){
@@ -21,30 +30,41 @@ if(isset($_SESSION['ADMIN_LOGIN'])){
 if(isset($_POST['submit']))
 {
     
-    $otp=get_safe_value($conn,$_POST['otp']);
-    
-    if(isset($_SESSION['otp']))
+    if($_SESSION['otp_attempt_count'] >= 4)
     {
-        if($otp == $_SESSION['otp'])
-        {
-            $_SESSION['email_verify'] = true;
-            unset($_SESSION['otp']);
-            header('location:'.SITE_ADMIN_PATH.'categories');
-            die();
-        }
-
-        else
-        {
-            $_SESSION['email_verify'] = false;            
-            $msg="OTP MisMatch";
-        }
+        password_reset($conn, $_SESSION['tmp_username']); 
+        $msg = "Otp have been reset and emailed to the founders";
+        session_destroy();
+        block_user($conn);
+        header('location:'.SITE_PATH.'errors/forbid ');
     }
     else
     {
-        $msg="OTP Expired";
+        $_SESSION['otp_attempt_count'] += 1;  
+        $otp=get_safe_value($conn,$_POST['otp']);
         
+        if(isset($_SESSION['otp']))
+        {
+            if($otp == $_SESSION['otp'])
+            {
+                $_SESSION['email_verify'] = true;
+                unset($_SESSION['otp']);
+                header('location:'.SITE_ADMIN_PATH.'categories');
+                die();
+            }
+
+            else
+            {
+                $_SESSION['email_verify'] = false;            
+                $msg="OTP MisMatch";
+            }
+        }
+        else
+        {
+            $msg="OTP Expired";
+            
+        }
     }
-    
 }
 ?>
 
@@ -73,12 +93,12 @@ if(isset($_POST['submit']))
     <div class="main">
         <img src="assets/images/logo.png" alt="logo">
         <div class="form">
-            <?php echo $_SESSION['otp'] ?>
             <form method="POST" autocomplete='off'>
                 <h1>Welcome Back</h1>
                 <h4>ELECTROZON Admin Login</h4>
                 <lable class="lable">Enter otp</lable>
                 <input type="text" name='otp' required>
+                <p class="text-danger"><?php if($_SESSION['otp_attempt_count']!=0) echo (5-$_SESSION['otp_attempt_count'])." Attempt left"; ?></p>
                 <button type="submit" class="btn-submit" id="submit" name="submit">SUBMIT</button>
             </form>    
         </div>

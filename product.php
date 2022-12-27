@@ -58,6 +58,7 @@ if(isset($_GET['id']) && $_GET['id']!=''){
 		<div class="main-prdct">
 	        <?php 
 	        while($row=mysqli_fetch_assoc($product_data)) {
+	        	$shipping_charge = shipping_charge($row['price']);
 	        ?>
 				<div class="prdct-left-section p-5 m-3">
 
@@ -73,19 +74,19 @@ if(isset($_GET['id']) && $_GET['id']!=''){
 		                <img src="<?php echo PRODUCT_IMAGE_SITE_PATH.$row['image'];?>" style="width: 100%;">
 				    </div>
 
-					
-				
 				</div>
 				<div class="prdct-right-section">
 					<p class="prdct-name w-75"><?php echo $row['name']; ?></p>
 					<span>Product code: EC-4902</span><br>
 					<?php if($row['qty']>0) echo "<h4 style='color:green;'>Available in stock</h4>"; else echo "<h4 style='color:red;'>Out of Stock</h4>"; ?></span>
-					<p class="prdct-price"><i class="fa fa-inr"></i> <?php echo $row['price'] ?> <span class="prdct-mrp"><i class="fa fa-inr"> </i><?php echo $row['mrp'] ?></span> <span class="prdct-price-percent"> <?php echo number_format((($row['mrp']-$row['price'])/$row['mrp'])*100, 2);?>% off</span></p>
-
+					<p class="prdct-price"><i class="fa fa-inr"></i> <?php echo $row['price'] ?> <span class="p-sml">(inc. All Taxes)</span></p>
+					<?php if($shipping_charge!=0){ ?><span class="p-dark"><i class="fa fa-truck"></i> Shipping Charges:   <i class="fa fa-inr"></i><?php echo $shipping_charge ?></span><br><span class="p-dark text-danger">Free Delivery On orders over <i class="fa fa-inr"></i>1000</span><?php } else{ ?>
+						<span class="p-dark text-danger">Free Delivery</span>
+					<?php } ?>
 					 	<div class="col-3"> 
 				        <label class="form-label">Quantity</label>
 				          <select id="quantity" class="form-select form-select-sm mb-3" aria-label=".form-select-lg example">
-				            <?php for($n=1; $n<=($row['qty']*9/10); $n++ ){ ?>
+				            <?php for($n=1; $n<=($row['qty']*10/10); $n++ ){ ?>
 				              <option value="<?php echo $n; ?>"><?php echo $n; ?></option>
 				            <?php } ?>
 				          </select>
@@ -103,19 +104,10 @@ if(isset($_GET['id']) && $_GET['id']!=''){
 					    </div>
 
 					<div class="row mt-3">
-						<div class="col-sm-auto fw-light"><b>Expected Delivery Date:</b></div>
-						<div class="col-sm-auto">
-							<?php 
-								$ten_day_inc=strtotime("+10 days");
-								$delivery_day = date("l", $ten_day_inc);
-								$delivery_date = date("d", $ten_day_inc);
-								$monthNum  = date("m", $ten_day_inc);
-								$dateObj   = DateTime::createFromFormat('!m', $monthNum);
-								$monthName = $dateObj->format('F');
-								echo "<span class='p-dark'>".$delivery_day.", ".$delivery_date." ".$monthName."</span>";
-							?>
-						</div>
+						<div class="col-sm-auto fw-light"><b>Delivery:</b></div>
+						<div class="col-sm-auto p-dark">Between 5 to 10 Buisness Days</div>
 					</div>
+
 
 					<div class="row prdct-details">
 						<div class="col-sm-auto"><b>Discription:</b></div>
@@ -167,7 +159,7 @@ if(isset($_GET['id']) && $_GET['id']!=''){
               </div>
               <div class="container mt-4 text-center">
                 <span class="product-name"><?php echo $product['short_name'] ?></span><br>
-                <span class="product-price"><i class="fa fa-inr"></i><?php echo $product['price'] ?> <span><i class="fa fa-inr"></i><?php echo $product['mrp'] ?></span> </span>
+                <span class="product-price"><i class="fa fa-inr"></i><?php echo $product['price'] ?> </span>
               </div>
             </a>
             <div class="shopping-controls mt-3 position-absolute bottom-0"><button class="product-button py-2" onclick="addCart('<?php echo $user_id; ?>',<?php echo $product['id'] ?>)"><i class="fa fa-shopping-cart"></i> Add to Cart</button>
@@ -179,7 +171,7 @@ if(isset($_GET['id']) && $_GET['id']!=''){
     </div>
   </section>
 
-  <center class="p-sml p-light my-3 mb-3 resp_view d-none"><span class="fs-4"><i class="fa fa-shield" aria-hidden="true"></i> 100% Original Products</span><br> With Assured Brand Warrnaty</center>
+  <center class="p-sml p-light my-3 mb-3 resp_view d-none"><span class="fs-4"><i class="fa fa-shield" aria-hidden="true"></i> 100% Original Products</span><br> With Assured Brand Warranty</center>
 
   <!-- Products Responsive View Section -->
   <div class="category_resp border-top pt-3 bg-white">
@@ -204,8 +196,6 @@ if(isset($_GET['id']) && $_GET['id']!=''){
             <div class="ps-3">
               <?php 
                 echo "<span class='p-dark'><i class='fa fa-inr'></i>".$product['price']."</span>";
-                echo "<span class='p-sml p-light'> <i class='fa fa-inr'></i><s>".($product['mrp'])."</s></span>"; 
-                echo "<span class='prdct-price-percent'> ".number_format(($product['price']/$product['mrp'])*100, 2)."% off</span>";
               ?>
             </div>
           </div>
@@ -242,3 +232,4 @@ require('prerequisite/footer.php');
 
 </body>
 </html>
+

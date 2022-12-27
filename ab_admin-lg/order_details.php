@@ -2,6 +2,8 @@
 ob_start();
 require('home.php');
 
+
+
 if(isset($_GET['id'])){
   $order_id = get_safe_value($conn, $_GET['id']);
   $ProductsArr = getOrderDetails($conn, $order_id);
@@ -59,22 +61,15 @@ ob_end_flush();
                     <td></td>
                     <td></td>
                     <td></td>
-                    <td >GST 18%</td>
-                    <td ><?php $payed_amount = (0.18*$total_amount); echo (int) $payed_amount; ?></td>
-                  </tr>
-                  <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
                     <td >Shipping Charges</td>
-                    <td ><?php if(($total_amount + $payed_amount)<500) $shipping_amount = 49; else $shipping_amount = 0; echo $shipping_amount;?></td>
+                    <td ><?php if($total_amount<500) $shipping_amount = 49; else $shipping_amount = 0; echo $shipping_amount;?></td>
                   </tr>
                   <tr>
                     <td></td>
                     <td></td>
                     <td></td>
                     <td class="fw-bold">Amount Payed</td>
-                    <td class="fw-bold"><?php echo (int) ($total_amount + $payed_amount + $shipping_amount); ?></td>
+                    <td class="fw-bold"><?php echo (int) ($total_amount + $shipping_amount); ?></td>
                   </tr>
             </tbody>
         </table>
@@ -94,7 +89,7 @@ ob_end_flush();
                echo $userInfo['post_code']."<br>";
                echo "Phone: ".$userInfo['phone_number']."<br></p>";?>
 
-          <h5 class="card-title"><b>Order Status: </b><?php echo $order_status_arr['name'];?></h5>   
+          
         </div>
 
         <div class="col">
@@ -102,27 +97,31 @@ ob_end_flush();
             $paymentInfo=mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM `order` WHERE id = '$order_id'"));
           ?>
 
-          <h5 class="card-title"><b>Address:</b><br></h5>
-            <?php echo "<span class='p-sml fw-bold'> Payment Method : </span>".$paymentInfo['PAYMENTMODE']."<br>";
-               echo "<span class='p-sml fw-bold'>Payment Status : </span>".$paymentInfo['payment_status']."<br>";
-               echo "<span class='p-sml fw-bold'>Transaction Id : </span>".$paymentInfo['TXNID']."<br>";?>
+          <h5 class="card-title"><b>Payment Info:</b><br></h5>
+            <?php echo "<span class='p-sml fw-bold'>Payment Status : </span>".$paymentInfo['payment_status']."<br>";
+               echo "<span class='p-sml fw-bold'>Payment Request Id : </span>".$paymentInfo['payment_request_id']."<br>";
+               echo "<span class='p-sml fw-bold'>Payment Id : </span>".$paymentInfo['payment_id']."<br>";?>
 
           <h5 class="card-title pt-2"><b>Payment Status: </b><?php echo $order_status_arr['name'];?></h5>   
         </div>
 
       </div>
-
       <form method="POST" >
-        <select class="form-select input-group-sm" name="update_order_status" required>
-          <option>Select Status </option>
-          <?php
-          $res=mysqli_query($conn,'select * from order_status');
-          while($row=mysqli_fetch_assoc($res)){
-            echo "<option value=".$row['id'].">".$row['name']."</option>";
-          }
-          ?>
-        </select>
-        <button type="submit" name="submit" class="btn btn-dark mt-2" style="line-height: 1.1;">Submit</button>  
+        <div class="d-flex">
+          <h5 class="card-title mt-1"><b>Order Status: </b><?php echo $order_status_arr['name'];?></h5>   
+          <select class="form-select ms-3" name="update_order_status" style="width: auto;" onchange="this.form.submit()">
+            <option>Select Status </option>
+            <?php
+            $res=mysqli_query($conn,'select * from order_status');
+            while($row=mysqli_fetch_assoc($res)){
+              if($row['name'] == $order_status_arr['name']) $value = 'selected'; else $value = '';
+              echo "<option ".$value." value=".$row['id'].">".$row['name']."</option>";
+            }
+            ?>
+          </select>
+        </div>
+        <a href="<?php echo SITE_ADMIN_PATH."orders" ?>" name="submit" class="btn btn-secondary mt-2 me-2" style="line-height: 1.1">Back</a>
       </form>
 
     </main>
+

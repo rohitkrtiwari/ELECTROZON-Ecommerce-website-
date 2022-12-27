@@ -102,11 +102,12 @@ require('prerequisite/main-menu.php');
 
 
 <div class="row px-3 m-auto my-4 login_resp"> 
+<p > <a class="fs-14 text-decoration-none fw-bold" href="<?php echo SITE_PATH ?>">Home > </a> <a class="fs-14 text-decoration-none text-danger fw-bold" href="#"> Login </a></p>
   <div class="col mx-1 login-reg-box">
 
-    
 
-    <h4>New Customer</h4>
+
+    <h4>Sign Up</h4>
     <p class="p-sml p-light">Checkout Options:</p>
     <div class="form-check">
       <input class="form-check-input" type="radio" name="register" id="register" checked>
@@ -115,27 +116,29 @@ require('prerequisite/main-menu.php');
       </label>
     </div>
     <p class="p-sml p-light">By creating an account you will be able to shop faster, be up to date on an order's status, and keep track of the orders you have previously made.</p>
-    <button type="submit" id ="checkout-register" class="btn btn-dark" style="line-height: 1.1;">Continue</button>
+    <button type="submit" id ="checkout-register" class="btn btn-dark" style="line-height: 1.1;">Sign Up</button>
   </div>
 
   <div class="col mx-1 align-right login-reg-box">
     <div id="alert-msg"></div>
-    <h4>Returning Customer</h4>
+    <h4>Login</h4>
     <p class="p-sml p-light">I am A returning Customer</p>
       <?php if($msg!='') echo "<script>alertMsg('".$msg."')</script>"; ?>
       <?php if($static_msg!='') echo "<span style='color:red'>**".$static_msg."</span>"; ?>
     <form method="POST">
       <div class="mb-3">
         <label class="form-label">Email address</label>
-        <input type="email" name='email' required class="form-control">
+        <input type="email" name='email' id="email" required class="form-control">
         <div class="form-text">We'll never share your email with anyone else.</div>
+        <p id="emailcheck" class="m-0"></p>
       </div>
       <div class="mb-3">
         <label class="form-label">Password</label>
-        <input type="password" name="password" class="form-control">
+        <input type="password" name="password" id="password" class="form-control">
+        <p id="passcheck" class="m-0"></p>
         <a href="<?php echo SITE_PATH?>forgot_password" class="text-decoration-none p-sml text-primary">Forgotten Password</a><br>
       </div>
-      <button type="submit" name="submit" class="btn btn-dark" style="line-height: 1.1;">Submit</button>
+      <button type="submit" name="submit" id="login-btn" class="btn btn-dark" style="line-height: 1.1;">Submit</button>
     </form>
   </div>
 </div>
@@ -147,6 +150,79 @@ require('prerequisite/main-menu.php');
 <?php
 require('prerequisite/footer.php');
 ?>
+
+<script type="text/javascript">
+ $(document).ready(function(){
+
+   $('#emailcheck').hide();
+   $('#passcheck').hide();
+
+   var email_err = true;
+   var pass_err = true;
+
+   $('#email').keyup(function(){
+    email_check();
+   });
+
+   $('#password').keyup(function(){
+    password_check();
+   });
+
+
+ function email_check(){
+   var user_val = $('#email').val();
+   if(user_val.length == ''){
+     $('#emailcheck').show();
+     $('#emailcheck').html("**Please Fill the Email Address");
+     $('#emailcheck').focus();
+     $('#emailcheck').css("color","red");
+     email_err = false;
+     return false;
+   }else{
+     email_err = true;
+     $('#emailcheck').hide();
+   }
+ }
+
+
+
+ function password_check(){
+   var passwrdstr = $('#password').val();
+     if(passwrdstr.length == ''){
+     $('#passcheck').show();
+     $('#passcheck').html("**Please Fill the password");
+     $('#passcheck').focus();
+     $('#passcheck').css("color","red");
+     pass_err = false;
+     return false;
+   }else{
+     pass_err = true;
+     $('#passcheck').hide();
+   } 
+
+ }
+
+ $('#login-btn').click(function(){
+  email_err = true;
+  pass_err = true;
+
+
+  email_check();
+  password_check();
+
+
+  if((email_err == true) && (pass_err == true)){
+   return true;
+  }else{
+   return false;
+  }
+
+
+ });
+
+ });
+</script>
+
 
 </body>
 </html>

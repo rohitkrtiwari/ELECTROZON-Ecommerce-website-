@@ -3,15 +3,32 @@ ob_start();
 require('home.php');
 if(isset($_GET['type']) && $_GET['type']!=''){
   $type=get_safe_value($conn,$_GET['type']);
+  // Update Active inactive status of website
+  if($type=='status'){
+    $operation=get_safe_value($conn,$_GET['operation']);
+    $id=get_safe_value($conn,$_GET['id']);
+    if($operation=='active'){
+      $status='1';
+    }else{
+      $status='0';
+    }
+    $update_status_sql="update address set status='$status' where id='$id'";
+    if(mysqli_query($conn,$update_status_sql)) header('location:'.SITE_ADMIN_PATH.'manage_address');
+    else $error_msg = "Can't the category right now";
+
+  }
   if($type=='delete'){
     $id=get_safe_value($conn,$_GET['id']);
     $delete_sql="delete from address where id='$id'";
-    mysqli_query($conn,$delete_sql);
+    if(mysqli_query($conn,$delete_sql)) header('location:'.SITE_ADMIN_PATH.'manage_address');
+    else $error_msg = "Can't the category right now";
   }
+
   if($type=='confirm'){
     $id=get_safe_value($conn,$_GET['id']);
     $confirmAdd_sql="update address set verified=1 where id='$id'";
-    mysqli_query($conn,$confirmAdd_sql);
+    if(mysqli_query($conn,$confirmAdd_sql)) header('location:'.SITE_ADMIN_PATH.'manage_address');
+    else $error_msg = "Can't the category right now";
   }
 }
 $sql="select * from address where verified = 0"; 
@@ -73,12 +90,12 @@ ob_end_flush();
                 <td><?php echo $p_address['phone_number']; ?></td>
                 <td>
                   <div class="op-link">
-                    <span class="badge-green"><a href="?type=confirm&id=<?php echo $p_address['id']?>">Confirm</a></span>
+                    <span class="badge-green"><a href="<?php echo SITE_ADMIN_PATH ?>manage_address.php?type=confirm&id=<?php echo $p_address['id']?>">Confirm</a></span>
                   </div>
                 </td>
                 <td>
                   <div class="op-link">
-                    <span class="badge-red"><a href="?type=delete&id=<?php echo $p_address['id']?>">Delete</a></span>
+                    <span class="badge-red"><a href="<?php echo SITE_ADMIN_PATH ?>manage_address.php?type=delete&id=<?php echo $p_address['id']?>">Delete</a></span>
                   </div>
                 </td>
               <?php } ?>
@@ -115,7 +132,13 @@ ob_end_flush();
                 <td><?php echo $s_address['phone_number']; ?></td>
                 <td>
                   <div class="op-link">
-                    <span class="badge-red"><a href="?type=delete&id=<?php echo $s_address['id']?>">Delete</a></span>
+                  <?php 
+                    if($s_address['status']==1){
+                      echo '<span class="badge-green"><a href="'.SITE_ADMIN_PATH.'manage_address.php?type=status&operation=deactive&id='.$s_address['id'].'">'."Active".'</a></span>&nbsp';
+                    } else{
+                      echo '<span class="badge-light-red"><a href="'.SITE_ADMIN_PATH.'manage_address.php?type=status&operation=active&id='.$s_address['id'].'">'."Deactive".'</a></span>&nbsp';
+                    }
+                  ?>
                   </div>
                 </td>
               <?php } ?>

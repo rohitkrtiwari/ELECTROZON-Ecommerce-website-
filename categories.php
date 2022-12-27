@@ -2,7 +2,7 @@
 session_start();
 require('connection.inc.php');
 require('functions.inc.php');
-$product_count=5;
+
 $product_resp_count=2;
 $user_id = get_user($conn)[0]; $loggedin = get_user($conn)[1];
 
@@ -29,12 +29,12 @@ $category_product=get_product($conn,'', $catid);
   <link href="<?php echo SITE_PATH ?>assets/css/preloader.css" rel="stylesheet">
   <link href="<?php echo SITE_PATH ?>assets/css/header.css" rel="stylesheet">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="HandheldFriendly" content="true">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 
-	<title>Electrozon - Categories</title>
+	<title><?php echo $catname['category']; ?> - ELECTROZON</title>
 
 </head>
 <body>
@@ -58,37 +58,44 @@ if($loggedin==true){
 require('prerequisite/main-menu.php');
 ?>
 
-<!-- Products Full View Section -->
-<section class="category_full_view d-flex">
-
-  <div class="grid-view w-25">
-    <span class="fs-2 px-5">CATEGORIES</span>
 
 
-    <!-- Category View Left Panel -->
-    <div class="list-group mt-4">
-      <?php $sql = 'SELECT * from categories where status=1'; $res=mysqli_query($conn, $sql); while($row=mysqli_fetch_assoc($res)) { ?>
-        <button type="button" onclick="location.href='<?php echo SITE_PATH ?>categories/<?php echo $row['id']?>'" class="list-group-item list-group-item-action <?php if($row['category']==$catname['category']) echo "active"; ?>"><?php echo $row['category']; ?>
-        </button>
-      <?php } ?>
-    </div>
-  </div>
+<div id="alert-msg"></div>
 
-  <div class="grid-view ms-0 px-2 w-75">
-  <?php if(count($category_product)>0) { ?>
-    <!-- Grid View Heading -->
-    <div class="product-row-heading">
-      <div class="product-row-heading-title">
-        <span class="fs-3 ps-0 p-light"><?php echo $catname['category'] ?></span>
-        <div id="alert-msg" style="background-color: #3d1a54;"></div>
+<section class="bg-white">  
+  <div class="container-fluid mt-2">
+    <div class="row my-3">
+
+      <div class="col-auto mt-2">
+        <nav id="sidebarMenu" class=" d-md-block bg-light sidebar collapse">
+        <h5 class="mx-3 mt-3">All Categories</h5>
+          <div class="position-sticky pt-3">
+            <ul class="nav flex-column">
+              <?php $sql = 'SELECT * from categories where status=1'; $res=mysqli_query($conn, $sql); while($row=mysqli_fetch_assoc($res)) { ?>
+              <li class="nav-item">
+                <a class="nav-link" href="<?php echo SITE_PATH ?>categories/<?php echo $row['id']?>">
+                  <span data-feather="shopping-cart"></span>
+                  <?php echo $row['category']; ?>
+                </a>
+              </li>
+              <?php } ?>
+            </ul>
+
+          </div>
+        </nav>
       </div>
-    </div>
-    <!-- Product Display Section -->
-    <div class="row">
+
+      <div class="col pt-1">
+        <p > <a class="fs-14 text-decoration-none fw-bold" href="<?php echo SITE_PATH ?>">Home > </a> <a class="fs-14 text-decoration-none text-danger fw-bold" href="#"> <?php echo $catname['category'] ?> </a></p>
+        <h2 class="text-dark"><?php echo $catname['category'] ?></h2>
+        <div class="row">
+      
+      <?php if(count($category_product)>0) { ?>
+
       <?php foreach ($category_product as $product) { ?>
-      <div class="col-sm-3 product-img py-3 my-1 h-75 cat_prdct_view">
-        <div class="prdct-box border rounded-3 pt-3 position-relative" style="height: 345px;">
-          <a href="<?php echo SITE_PATH ?>product/<?php echo $product['id'] ?>" class="product-link">
+      <div class="category_full_view col-sm-3 py-3 px-0 mx-0 my-1 h-75 cat_prdct_view">
+        <div class="prdct-box border rounded-3 pt-3 position-relative" style="height: 385px;">
+          <a href="<?php echo SITE_PATH ?>product/<?php echo $product['id'] ?>" target="_blank" class="product-link">
             <div class="product-img">
               <img src=" <?php echo PRODUCT_IMAGE_SITE_PATH.$product['image'];?> " style="height: 100%; width: 100%;object-fit: contain;"alt="Avatar">
             </div>
@@ -102,60 +109,46 @@ require('prerequisite/main-menu.php');
         </div>
       </div> 
       <?php } ?>
-    </div>
-  <?php } else {?>
-    <!-- Empty Results-->
-    <div class="grid-view row">
-      <p>
-        </p><center><img src="<?php echo SITE_PATH ?>assets/images/shopping_empty.png" style="width: 250px;" alt="Shopping Cart Empty"></center>
-      <p></p>
-      <p style="font-size: 19px; text-align: center; text-transform: initial;">No Products found in This Category</p>
-      <p style="font-size: 16px; text-align: center;">Try different Categories or Search the Product by Name</p>
-      <center><a href="<?php echo SITE_PATH ?>" class="btn btn-dark" style="line-height: 1.1;">Shop Now</a></center>
-    </div>
-  <?php } ?>
-
+      <?php } else {?>
+      <!-- Empty Results-->
+      <div class="cart-empty-alert">
+        <p>
+          </p><center><img src="<?php echo SITE_PATH ?>assets/images/shopping_empty.png" style="width: 250px;" alt="Shopping Cart Empty"></center>
+        <p></p>
+        <p style="font-size: 19px; text-align: center; text-transform: initial;">No Products found in This Category</p>
+        <p style="font-size: 16px; text-align: center;">Try different Categories or Search the Product by Name</p>
+      </div>
+    <?php } ?>
+  </div>
 </section>
 
+ <!-- Products Responsive View Section -->
+<section class="responsive">
+  <div class="category_resp">
+    <?php if($category_product != '') { ?>
+    
+    <table class="table table-bordered">
+      <tr>
+      <?php $i=0; foreach ($category_product as $product) { $i+=1;?>
+        <td class="w-50" onclick="location.href='<?php echo SITE_PATH ?>product/<?php echo $product['id'] ?>'" style="cursor:pointer; background: #fff;">
+          
+          <div class="row"><img src=" <?php echo PRODUCT_IMAGE_SITE_PATH.$product['image'];?> " class="p-4" style="max-height:250px;width: 100%;;object-fit: contain;"alt="Avatar"></div>
 
-<!-- Products Responsive View Section -->
-<div class="category_resp bg-white pt-2">
-  <?php if(count($category_product)>0) { ?>
-  <span class="fs-2 ms-3 fw-bold"><?php echo $catname['category'] ?></span>
-  <table class="table table-bordered mt-2">
-    <tr>
-    <?php $i=0; foreach ($category_product as $product) { $i+=1;?>
-      <td class="w-50" onclick="location.href='<?php echo SITE_PATH ?>product/<?php echo $product['id'] ?>'" style="cursor:pointer; background: #fff;">
-        
-        <div class="row"><img src=" <?php echo PRODUCT_IMAGE_SITE_PATH.$product['image'];?> " class="p-4" style="max-height:250px;width: 100%;object-fit: contain;"alt="Avatar"></div>
-
-        <div style="vertical-align: bottom; display: table-cell">
-          <div class="ps-3"><?php echo $product['short_name'] ?></div>
-          <div class="ps-3">
-            <?php 
-              echo "<span class='p-dark'><i class='fa fa-inr'></i>".$product['price']."</span>";
-              echo "<span class='p-sml p-light'> <i class='fa fa-inr'></i><s>".($product['mrp'])."</s></span>"; 
-              echo "<span class='prdct-price-percent'> ".number_format(($product['price']/$product['mrp'])*100, 2)."% off</span>";
-            ?>
+          <div style="vertical-align: bottom; display: table-cell">
+            <div class="ps-3"><?php echo $product['short_name'] ?></div>
+            <div class="ps-3">
+              <?php 
+                echo "<span class='p-dark'><i class='fa fa-inr'></i>".$product['price']."</span>";
+              ?>
+            </div>
           </div>
-        </div>
-      </td>
-    <?php if(($i%2)==0) echo "</tr><tr>"; } ?>
-    </tr>
-  </table>
-  <?php } else {?>
-    <!-- Empty Results-->
-    <div class="cart-empty-alert">
-      <p>
-        </p><center><img src="<?php echo SITE_PATH ?>assets/images/shopping_empty.png" style="width: 250px;" alt="Shopping Cart Empty"></center>
-      <p></p>
-      <p style="font-size: 19px; text-align: center; text-transform: initial;">No Products found in This Category</p>
-      <p style="font-size: 16px; text-align: center;">Try different Categories or Search the Product by Name</p>
-      <center><a href="<?php echo SITE_PATH ?>" class="btn btn-dark" style="line-height: 1.1;">Shop Now</a></center>
-    </div>
-  <?php } ?>
-</div>
-
+        </td>
+      <?php if(($i%2)==0) echo "</tr><tr>"; } ?>
+      </tr>
+    </table>
+    <?php } ?>
+  </div>
+</section>
 
 
 <!-- Footer Section -->

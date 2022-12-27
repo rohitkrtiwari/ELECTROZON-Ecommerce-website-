@@ -1,28 +1,7 @@
 <?php
 include('smtp/PHPMailerAutoload.php');
 
-
 function get_user($conn){
-	
-	if(isset($_SERVER['REQUEST_URI']))
-	{
-		if ($_SERVER['REQUEST_URI'] != "electrozon/checkout")
-		{
-
-		}
-		else
-		{
-			unset($_SESSION['addId']);
-	        unset($_SESSION['payment_method']);
-	        unset($_SESSION['address']);
-	        unset($_SESSION['city']);
-	        unset($_SESSION['post_code']);
-	        unset($_SESSION['phone_number']);
-	        unset($_SESSION['name']);
-		}
-
-	}
-
 
 	// If User is logged in
 	if(isset($_SESSION['login'])==true)
@@ -79,8 +58,12 @@ function get_user($conn){
 	  $loggedin = false;
 	  if(isset($_COOKIE['user_id']) && verify_temp_user($conn,$_COOKIE['user_id'])){
 	    $temp_user_id = $_COOKIE['user_id'];
+	    try{ tmp_user_visit($conn, $temp_user_id); }
+		catch (Exception $e){ // echo $e; 
+		}
 	  }else{
-		$temp_user_id=create_temp_user($conn);
+		$ip = $_SERVER['REMOTE_ADDR'];
+		$temp_user_id=create_temp_user($conn, '', $ip);
 	  }
 	  $_SESSION['user_id'] = $temp_user_id;
 	}
@@ -88,7 +71,8 @@ function get_user($conn){
 	return array($_SESSION['user_id'], $loggedin);
 }
 
-function sendMail($to,$subject, $body){
+function sendMail($to_email, $subject, $body){
+
 	$mail = new PHPMailer(); 
 	// $mail->SMTPDebug  = 3;
 	$mail->IsSMTP(); 
@@ -98,12 +82,12 @@ function sendMail($to,$subject, $body){
 	$mail->Port = 587; 
 	$mail->IsHTML(true);
 	$mail->CharSet = 'UTF-8';
-	$mail->Username = "abc@xyz.com";
+	$mail->Username = "mail@gmail.com";
 	$mail->Password = "";
-	$mail->SetFrom("abc@xyz.com");
+	$mail->SetFrom("mail@gmail.com");
 	$mail->Subject = $subject;
 	$mail->Body =$body;
-	$mail->AddAddress($to);
+	$mail->AddAddress($to_email);
 	$mail->SMTPOptions=array('ssl'=>array(
 		'verify_peer'=>false,
 		'verify_peer_name'=>false,
@@ -134,7 +118,6 @@ function SendVerificationMail($username, $token){
 		return false;
 	}
 }
-
 
 function SendPasswordResetMail($username, $token){
 	$body = '<div style="width: 90%; margin: auto; border: 1px solid #e3e3e3; padding: 19px; margin-bottom: 20px; box-shadow: inset 0 1px 1px rgba(0,0,0,.05);">';
@@ -182,7 +165,8 @@ function crt_time(){
 	die();
 }
 
-function get_product($conn,$limit='',$cat_id='',$pid='',$search_str='', $best_seller=''){
+
+function get_product($conn,$limit='',$cat_id='',$pid='',$search_str='', $best_seller='', $pid_arr=''){
 	$sql="SELECT * from product where status = 1";
 	if($pid!='')
 	{
@@ -202,7 +186,10 @@ function get_product($conn,$limit='',$cat_id='',$pid='',$search_str='', $best_se
 	if($search_str!='')
 	{
 
-		$sql.=" and (product.short_name like '%$search_str%' or product.name like '%$search_str%' or product.description like '%$search_str% and status = 1'";
+		if($pid_arr=='')
+			$sql.=" and (product.short_name like '%$search_str%' or product.name like '%$search_str%' or product.description like '%$search_str% and status = 1'";
+		else
+			$sql.=" and (product.short_name like '%$search_str%' or product.id IN (".implode(",",$pid_arr).") or product.name like '%$search_str%' or product.description like '%$search_str% and status = 1'";
 
 
 		$cat_sql="select id from categories where category like '%$search_str%'";
@@ -215,8 +202,9 @@ function get_product($conn,$limit='',$cat_id='',$pid='',$search_str='', $best_se
 			{
 		    	array_push($catId, $row['id']);
 			}		
-			$sql.="or category_id IN (".implode(',',$catId)."))";	
+			$sql.="or category_id IN (".implode(',',$catId).")";	
 		}
+		$sql.=")";
 
 		
 	}
@@ -238,6 +226,7 @@ function get_product($conn,$limit='',$cat_id='',$pid='',$search_str='', $best_se
 	}
 }
 
+
 function verify_temp_user($conn,$user_id){
 	$sql="SELECT username from temp_user where username = '$user_id'";
 	$res=mysqli_query($conn, $sql);
@@ -249,13 +238,13 @@ function verify_temp_user($conn,$user_id){
 	}
 }
 
-function create_temp_user($conn,$uniqid=''){
+function create_temp_user($conn,$uniqid='', $ip){
 	if($uniqid==''){
 		$uniqid = uniqid('user_');
 		setcookie("user_id",$uniqid,time()+31560000,"/");
 	}
 	$crt_time = crt_time();
-	$sql="INSERT INTO temp_user(username, created_on, last_visit) values('$uniqid', '$crt_time','$crt_time')";
+	$sql="INSERT INTO temp_user(username, created_on, last_visit, ip) values('$uniqid', '$crt_time','$crt_time','$ip')";
 	mysqli_query($conn, $sql);
 	return $uniqid;
 }
@@ -277,7 +266,7 @@ function getAddress($conn, $user_id, $status='', $id=''){
 }
 
 function getOrder($conn, $username){
-	$sql = "select `order`.*,order_status.name as order_status_str from `order`,order_status where `order`.username='$username' and order_status.id=`order`.order_status";
+	$sql = "select `order`.*,order_status.name as order_status_str from `order`,order_status where `order`.username='$username' and order_status.id=`order`.order_status and `order`.payment_status = 'success' order by id desc";
 	$res=mysqli_query($conn,$sql);
 	$data=array();
 	while ($row=mysqli_fetch_assoc($res)){
@@ -287,7 +276,7 @@ function getOrder($conn, $username){
 }
 
 function getOrderDetails($conn, $username, $order_id){
-	$sql = "SELECT DISTINCT(order_detail.id), order_detail.*,product.name,product.image from order_detail, product, `order` where order_detail.order_id=$order_id and `order`.username='$username' and order_detail.product_id=product.id";
+	$sql = "SELECT DISTINCT(order_detail.id), order_detail.*,product.name,product.image from order_detail, product, `order` where order_detail.order_id=$order_id and `order`.username='$username' and order_detail.product_id=product.id and `order`.payment_status = 'success'";
 	// echo $sql;
 	$res=mysqli_query($conn,$sql);
 	$data=array();
@@ -308,6 +297,7 @@ function userProfileData($conn, $username){
 	return $data;
 }
 
+
 // Generate CSRF Token
 function csrf_token($form_name){
 	$token = bin2hex(random_bytes(50));
@@ -324,19 +314,19 @@ function csrf_token($form_name){
 // Make Online Payment Thorough Instamojo Payment Gateway
 function getPaymentID($name, $email, $number, $amount){
   $ch = curl_init();
-  curl_setopt($ch, CURLOPT_URL, 'https://test.instamojo.com/api/1.1/payment-requests/');
+  curl_setopt($ch, CURLOPT_URL, 'https://www.instamojo.com/api/1.1/payment-requests/');
   curl_setopt($ch, CURLOPT_HEADER, FALSE);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
   curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
   curl_setopt($ch, CURLOPT_HTTPHEADER,
-              array("X-Api-Key:test_7197bcabe3829aa3d2048222645",
-                    "X-Auth-Token:test_effa6a74a851729d4563e6619b8"));
+              array("X-Api-Key:your_key",
+                    "X-Auth-Token:your_token"));
   $payload = Array(
       'purpose' => 'ELECTRZON Purchase ',
       'amount' => $amount,
       'phone' => $number,
       'buyer_name' => $name,
-      'redirect_url' => 'http://electrozon.in/electrozon/thank_u.php',
+      'redirect_url' => 'http://localhost/electrozon/activate.php',
       'send_email' => true,
       'send_sms' => true,
       'email' => $email,
@@ -348,6 +338,28 @@ function getPaymentID($name, $email, $number, $amount){
   curl_close($ch); 
   $response = json_decode($response);
   return array($response->payment_request->longurl, $response->payment_request->id);
+}
+
+function tmp_user_visit($conn, $temp_user_id){
+	$sql="UPDATE  temp_user set last_visit = default where username = '$temp_user_id'";
+	mysqli_query($conn, $sql); 
+}
+
+// This function return the shiiping ammout
+function shipping_charge($price){
+	
+	$shipping_charge = 0;
+
+	if($price < SHIPPING_CHARGE_LIMIT_1)
+    	$shipping_charge = SHIPPING_CHARGE_1;
+    elseif(($price > SHIPPING_CHARGE_LIMIT_1) && ($price < SHIPPING_CHARGE_LIMIT_2))
+    	$shipping_charge = SHIPPING_CHARGE_2;
+    elseif($price > SHIPPING_CHARGE_LIMIT_2)
+    	$shipping_charge = SHIPPING_CHARGE_3;
+
+
+    return $shipping_charge;
+
 }
 
 
