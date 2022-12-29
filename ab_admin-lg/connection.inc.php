@@ -1,5 +1,5 @@
 <?php
-$conn=mysqli_connect("localhost","root","","electrozon");
+$conn=mysqli_connect("localhost","root","root","electrozon");
 define('SERVER_PATH',$_SERVER['DOCUMENT_ROOT'].'/');
 define('SITE_PATH','http://localhost/electrozon/');
 define('SITE_ADMIN_PATH','http://localhost/electrozon/ab_admin-lg/');

@@ -43,11 +43,6 @@ Project is not ready yet, minor bugs needs to be fixed | not for free use
 <br>
 <br>
 
-## **Footer**
-<img src="readme_images/footer.png">
-<br>
-<br>
-
 ## **Product**
 <img src="readme_images/product.png">
 <br>
@@ -102,8 +97,8 @@ Project is not ready yet, minor bugs needs to be fixed | not for free use
 <br>
 <br>
 
-## **Footer**
-<img src="readme_images/mob_footer.png">
+## **Cart**
+<img src="readme_images/mob_cart.png">
 <br>
 <br>
 
@@ -117,10 +112,6 @@ Project is not ready yet, minor bugs needs to be fixed | not for free use
 <br>
 <br>
 
-## **Cart**
-<img src="readme_images/mob_cart.png">
-<br>
-<br>
 
 ## **Humburger Menu**
 <img src="readme_images/mob_humburger.png">

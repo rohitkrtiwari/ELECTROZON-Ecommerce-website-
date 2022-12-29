@@ -6,14 +6,14 @@ define('SHIPPING_CHARGE_3',0);
 define('SHIPPING_CHARGE_LIMIT_1',500);
 define('SHIPPING_CHARGE_LIMIT_2',1000);
 define('MAINMENU_CATEGORY_LIMIT',7);
-define('CONTACT_NUMBER',8178591178);
+define('CONTACT_NUMBER',1234567890);
 define('EMAIL','electrozon926@gmail.com');
 
 
-$conn=mysqli_connect("localhost","root","","electrozon");
+$conn=mysqli_connect("localhost","root","root","electrozon");
 
 function conn(){
-	$conn=mysqli_connect("localhost","root","","electrozon");
+	$conn=mysqli_connect("localhost","root","root","electrozon");
 	if($conn){
 		return $conn;
 	}
