@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+*{
+	margin: 0;
+	padding: 0;
+	font-family: 'Roboto', sans-serif;
+}
+
+.form-label {
+    font-size: 19px;
+    margin-top: 18px;
+}
+
+
+.p-sml{
+    font-size: 14px;
+}
+
+.p-light{
+    color: #666;
+}
+
+.p-red{
+    color: red;
+}
+
+.p-dark{
+    font-weight: 700 !important;
+}
+
+.link{
+    text-decoration: none;
+    color: black;
+}
+
+
+    /*-------- Pre-Loader --------*/
+
+
+body {
+  overflow: hidden;
+}
+
+
+/* Preloader */
+
+#preloader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #fff;
+  /* change if the mask should have another color then white */
+  z-index: 99;
+  /* makes sure it stays on top */
+}
+
+#status {
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  left: 50%;
+  /* centers the loading animation horizontally one the screen */
+  top: 50%;
+  /* centers the loading animation vertically one the screen */
+  background-image: url(http://electrozon.in/ab_admin-lg/assets/images/30.gif);
+  /* path to your loading animation */
+  background-repeat: no-repeat;
+  background-position: center;
+  margin: -100px 0 0 -100px;
+  /* is width and height divided by two */
+}
+
+
+
+
+
+/*  ----------- Category -----------  */
+
+.op-link{
+	margin-left: auto;
+	margin-right: 0;
+	width: fit-content;
+}
+
+.op-link a{
+	text-decoration: none;
+	color: white;
+}
+.badge-green{
+	background: #15863d;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+.badge-blue{
+	background: #1d6eb3;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.badge-light-red{
+	background: #ef4646;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+.badge-red{
+	background: #FF0000;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.add-new-link{
+    text-decoration: underline;
+    color: black;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+
+/*  ----------- manage_category -----------  */
+
+.ad-form{
+	margin-top: 15px;
+}
+
+
+
+
+
+
+
+
+
+/*  ----------- Hover -----------  */
+.add-new-link:hover{
+    color: #333333;
+}
+.badge-green:hover{
+	background: #1a6334;
+}
+.badge-blue:hover{
+	background: #12446f;
+}
+
+.badge-light-red:hover{
+	background: #a73535;
+}
+.badge-red:hover{
+	background: #8c0909;
+}
+
+
+.admin-table-row{
+    vertical-align: baseline;
+}
+
+.admin-table-image{
+  max-height: 80px;
+	max-width: 100px;
+}
+
+.tracking_id_update_btn{
+    border: 1px solid black;
+    padding: 1px 5px;
+    background: #b31f1f;
+    border-radius: 5px;
+    margin-left: 5px;
+    color: white;
+}
+
+ #alert-msg{
+    display: none; 
+    z-index: 999;
+    position: fixed;
+    padding: 10px 10px;
+    color: #fff;
+    margin: 21px 21px;
+    top: 50px;
+    right: 7px;
+    opacity: 0.9;
+    background: #2c692c !important;
+    border: 4px solid green;
+    border-radius: 5px;
+}
+
+.edit_field{
+  width: -webkit-fill-available;
+}

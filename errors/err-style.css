@@ -1,0 +1,60 @@
+#aa-error .aa-error-area {
+    display: inline;
+    float: left;
+    margin-top: 50px;
+    padding: 100px 100px 130px;
+    text-align: center;
+    width: 100%;
+}
+
+#aa-error .aa-error-area {
+    border: 5px solid #4337f5;
+}
+
+#aa-error .aa-error-area span {
+    color: #000;
+    display: block;
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 3px #ddd;
+}
+#aa-error .aa-error-area p {
+    font-size: 18px;
+}
+#aa-error .aa-error-area h2 {
+    display: inline-block;
+    font-size: 150px;
+    margin-bottom: 30px;
+    text-shadow: 0 2px 2px #ddd;
+}
+
+#aa-error .aa-error-area a {
+    border: 1px solid #ccc;
+    display: inline-block;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    color: black;
+    margin-top: 30px;
+    padding: 10px 15px;
+    text-transform: uppercase;
+    -webkit-transition: all 0.5s;
+    -moz-transition: all 0.5s;
+    -ms-transition: all 0.5s;
+    -o-transition: all 0.5s;
+    transition: all 0.5s;
+}
+
+@media only screen and (max-width: 750px) {
+
+    #aa-error .aa-error-area{
+        padding: 10px 10px 13px;       
+    }
+
+    #aa-error .aa-error-area h2{
+        font-size: 50px;       
+    }
+
+}

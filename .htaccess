@@ -1,0 +1,11 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.+)$ index.php?url=$l[QSA,L]
+
+Options -Indexes
+
+ErrorDocument 404 https://electrozon.in/errors/not-found
+ErrorDocument 403 https://electrozon.in/errors/forbid
+ErrorDocument 400 https://electrozon.in/errors/bad-request
+ErrorDocument 500 https://electrozon.in/errors/server-err
